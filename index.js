@@ -136,7 +136,7 @@ process.on('SIGINT', () => {
     });
 });
 app.get("/users",(req,res)=>{
-    const q="SELECT * FROM users;"
+    const q="SELECT * FROM attendance;"
     db.query(q,(err,results)=>{
         if(err){
             res.send("err milla  "+err)
@@ -149,7 +149,7 @@ app.get("/loc/:lat/:long", async (req,res)=>{
     const { lat, long } = req.params;
     const id=req.user.id;
     function checkProximity(lat, lon, centerLat, centerLon, radiusInMeters) {
-        const R = 6371000; s
+        const R = 6371000; 
         const latDiff = deg2rad(lat - centerLat);
         const lonDiff = deg2rad(lon - centerLon);
         const a = 
@@ -177,9 +177,31 @@ app.get("/loc/:lat/:long", async (req,res)=>{
 
     console.log('Is within 100 meters:',present );
     if(present==true){
-        res.send("you are present")
+        let attend="present"
+          const seletq="SELECT * FROM attendance WHERE iuserid= ? and date=?;"
+          db.query(seletq,[id,Date()],(err,results)=>{
+            if(err){
+                res.send("err while save ")
+            }
+            console.log(results);
+            
+            if(results === null){
+                const insq="INSERT INTO attendance (iuserid, date,attend) VALUES (?,?,?);"
+                db.query(insq,[id,Date(),attend],(err,results)=>{
+                    if(err){
+                        res.send("saving error")
+                    }
+                    res.send(results)
+                })
+            }
+            else{
+                console.log(results);
+                res.send("cant update at the movement")//badme update querry dalne hai 
+            }
+          })
+        
     }else{
-        res.send("you are not in range of college")
+        res.send("you are not in range of college try again maving a bit close")
     }
  
     console.log("recive");
