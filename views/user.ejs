@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users</title>
+</head>
+<body>
+    <h1>Users</h1>
+    <% for(user of users){ %>
+     
+
+            <h2>ID: <%= user.id %> </h2>
+            <h3>NAME: <%= user.username %> </h3>
+            <h4>EMAIL: <%= user.email %> </h4>
+<a href="/admin/users/<%=user.id%>">Update</a>
+<form action="http://localhost:3000/admin/users/<%=user.id%>?_method=DELETE" method="post" style="display: inline;">
+    <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+
+        <% } %>
+</body>
+</html>

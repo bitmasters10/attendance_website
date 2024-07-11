@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Update Form</h1>
+        <form action="http://localhost:3000/admin/users/<%=users.id%>?_method=PATCH" method="post">
+            <div class="form-group">
+                <label for="tit">Enter the Username:</label>
+                <input type="text" id="tit" value="<%= users.username  %>" name="username" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="tit">Enter the Email:</label>
+                <input type="text" id="tit" name="email" value="<%= users.email  %>" class="form-control">
+            </div>
+           
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
