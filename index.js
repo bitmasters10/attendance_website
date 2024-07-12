@@ -204,7 +204,7 @@ process.on('SIGINT', () => {
 });
 
 app.get('/users', (req, res) => {
-    const q = "SELECT * FROM users;";
+    const q = "SELECT * FROM attendance;";
     db.query(q, (err, results) => {
         if (err) {
             res.send("Error: " + err);
