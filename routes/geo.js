@@ -11,6 +11,7 @@ const db = mysql.createConnection({
 });
 
 router.post('/data', (req, res) => {
+    
     const geofence = { latitude: 19.07448, longitude: 72.8812877, radius: 500 };
     const userLocation = req.body;
 
@@ -21,7 +22,7 @@ router.post('/data', (req, res) => {
 
     const userId = req.user.id;  
     const currentDate = new Date().toISOString().split('T')[0];
-    const currentTime = new Date().toISOString().split('T')[1].split('.')[0];
+    
     const t = new Date();
 const currentHour = t.getHours();
 
@@ -30,24 +31,28 @@ const endHour = 17;
 let acc
 const ad = new Date();
 
-const indiaTime = new Date(ad.getTime() + (330 * 60000)); // GMT+5:30 offset
-
-// Extract year, month, and day
+const indiaTime = new Date(ad.getTime() + (330 * 60000));
 const year = indiaTime.getFullYear();
-const month = indiaTime.getMonth() + 1; // Month is zero-indexed, so add 1
+const month = indiaTime.getMonth() + 1; 
 const day = indiaTime.getDate();
 
-// Format date string
+
 const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+console.log(ourdate);
 
+const now = new Date();
+const hours = now.getHours().toString().padStart(2, '0');
+const minutes = now.getMinutes().toString().padStart(2, '0');
+const seconds = now.getSeconds().toString().padStart(2, '0');
 
-
+const currentTime = `${hours}:${minutes}:${seconds}`;
+console.log(currentTime);
 if (currentHour >= startHour && currentHour < endHour) {
     acc="present"
-    console.log('Current time is between 9 am and 5 pm.');
+    
 } else {
      acc="absent"
-    console.log('Current time is outside 9 am to 5 pm range.');
+    
 }
 
     if (distance <= geofence.radius) {
@@ -91,5 +96,4 @@ if (currentHour >= startHour && currentHour < endHour) {
         });
     }
 });
-
 module.exports = router;
