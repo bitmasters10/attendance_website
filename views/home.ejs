@@ -35,20 +35,30 @@
             padding: 10px 20px;
             font-size: 1.2em;
         }
+        .info-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <% if (admin) { %>
         <button id="btnn" class="btn btn-primary btn-location">Find My Location</button>
-        <p>Current Users Online: <%= onlineUsers  %></p>
-    <p>Current Users Offine: <%= offlineUsers  %></p>
-    <% }%>
-    
-
+        <div class="info-box">
+            <p>Current Users Online: <%= onlineUsers %></p>
+            <p>Current Users Offline: <%= offlineUsers %></p>
+        </div>
+    <% } %>
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-     <script src="/js/app.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
