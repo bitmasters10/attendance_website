@@ -28,6 +28,18 @@ const currentHour = t.getHours();
 const startHour = 9; 
 const endHour = 17; 
 let acc
+const ad = new Date();
+
+const indiaTime = new Date(ad.getTime() + (330 * 60000)); // GMT+5:30 offset
+
+// Extract year, month, and day
+const year = indiaTime.getFullYear();
+const month = indiaTime.getMonth() + 1; // Month is zero-indexed, so add 1
+const day = indiaTime.getDate();
+
+// Format date string
+const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
 
 
 if (currentHour >= startHour && currentHour < endHour) {
@@ -40,7 +52,7 @@ if (currentHour >= startHour && currentHour < endHour) {
 
     if (distance <= geofence.radius) {
         console.log('Inside geofence');
-        db.query('SELECT * FROM attendance WHERE userid = ? AND date = ?', [userId, currentDate], (err, results) => {
+        db.query('SELECT * FROM attendance WHERE userid = ? AND date = ?', [userId, ourdate], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err);
                 return res.status(500).json({ message: 'Server error' });
@@ -48,7 +60,7 @@ if (currentHour >= startHour && currentHour < endHour) {
             if (results.length === 0) {
                 
                 db.query('INSERT INTO attendance (userid, status, date, signin_time,accounted_for) VALUES (?, ?, ?, ?,?)', 
-                [userId, 'online', currentDate, currentTime,acc], (err, results) => {
+                [userId, 'online', ourdate, currentTime,acc], (err, results) => {
                     if (err) {
                         console.error('Error executing query:', err);
                         return res.status(500).json({ message: 'Server error' });
@@ -58,7 +70,7 @@ if (currentHour >= startHour && currentHour < endHour) {
             } else {
                 
                 db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
-                ['online', userId, currentDate], (err, results) => {
+                ['online', userId, ourdate], (err, results) => {
                     if (err) {
                         console.error('Error executing query:', err);
                         return res.status(500).json({ message: 'Server error' });
@@ -70,7 +82,7 @@ if (currentHour >= startHour && currentHour < endHour) {
     } else {
         console.log('Outside geofence');
         db.query('UPDATE attendance SET status = ?, signout_time = ? WHERE userid = ? AND date = ?', 
-        ['offline', currentTime, userId, currentDate], (err, results) => {
+        ['offline', currentTime, userId, ourdate], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err);
                 return res.status(500).json({ message: 'Server error' });

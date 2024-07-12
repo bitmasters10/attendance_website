@@ -230,18 +230,27 @@ process.on('SIGINT', () => {
 
 app.get('/users', (req, res) => {
     const q = "SELECT * FROM attendance;";
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    
-    const currentTime =`${hours}:${minutes}:${seconds}`;
+   // Get current date in GMT+5:30 (India Standard Time)
+const ad = new Date();
+
+const indiaTime = new Date(ad.getTime() + (330 * 60000)); // GMT+5:30 offset
+
+// Extract year, month, and day
+const year = indiaTime.getFullYear();
+const month = indiaTime.getMonth() + 1; // Month is zero-indexed, so add 1
+const day = indiaTime.getDate();
+
+// Format date string
+const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+console.log(formattedDate); // Output: "2024-07-12" for today's date in GMT+5:30 (India Standard Time)
+
     db.query(q, (err, results) => {
         if (err) {
             res.send("Error: " + err);
         }
         res.json(results);
-        console.log(currentTime);
+        
     });
 });
 
