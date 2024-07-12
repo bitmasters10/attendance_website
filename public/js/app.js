@@ -1,7 +1,9 @@
-const btn = document.querySelector('#btn');
+document.addEventListener('DOMContentLoaded', () => {
+
+
 const showGeofenceBtn = document.querySelector('#showGeofenceBtn'); 
-const p = document.querySelector('p');
-const stop = document.querySelector('#stop');
+// const p = document.querySelector('p');
+// const stop = document.querySelector('#stop');
 
 var map = L.map('map').setView([51.505, -0.09], 15);
 
@@ -17,23 +19,55 @@ let trackingInterval;
 const geofenceLat = 19.07448;
 const geofenceLng = 72.8812857;
 const geofenceRadius = 500;
+const marker = L.marker([51.505, -0.09]).addTo(map);
+//to show geocircle on map
+const showGeofenceCircle = () => {
+  if (!geofenceCircle) {
+    geofenceCircle = L.circle([geofenceLat, geofenceLng], {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+        radius: geofenceRadius,
+    }).addTo(map);
 
-btn.addEventListener('click', () => {
+    map.fitBounds(geofenceCircle.getBounds());
+}
+};
+showGeofenceCircle();
+
+// if (btnn) {
+document.getElementById('btnn').addEventListener('click', () => {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success);
-    startTracking(); 
+      setInterval(() => {
+          navigator.geolocation.getCurrentPosition(position => {
+              const { latitude, longitude } = position.coords;
+              map.setView([latitude, longitude], 16);
+              marker.setLatLng([latitude, longitude]);
+              axios.post('/geo/data', { latitude, longitude })
+                  .then(response => console.log(response.data))
+                  .catch(error => console.error(error));
+          });
+      }, 5000);
+      // showGeofenceCircle();
   } else {
-    console.log('Geolocation is not supported by this browser');
+      alert('old browseer pls use new one.');
   }
 });
+// };
+if(showGeofenceBtn){
+ 
+  showGeofenceBtn.addEventListener('click', () => {
+    // showGeofenceCircle();
+    alert('CHocho')
+  });
+}
+ 
 
-stop.addEventListener('click',()=>{
-  stopTracking();
-})
+// stop.addEventListener('click',()=>{
+//   stopTracking();
+// })
 
-showGeofenceBtn.addEventListener('click', () => {
-  showGeofenceCircle();
-});
+
 
 const success = (pos) => {
   const lat = pos.coords.latitude;
@@ -95,32 +129,9 @@ const success = (pos) => {
 
 
 
-//to show geocircle on map
-const showGeofenceCircle = () => {
-  if (!geofenceCircle) {
-    geofenceCircle = L.circle([geofenceLat, geofenceLng], {
-      color: 'red',
-      fillColor: '#f03',
-      fillOpacity: 0.5,
-      radius: geofenceRadius,
-    }).addTo(map);
-
-    map.fitBounds(geofenceCircle.getBounds());
-  }
-};
 
 
 
-//to start the tracking by adding interval
-const startTracking = () => {
-  trackingInterval = setInterval(() => {
-    navigator.geolocation.getCurrentPosition(success);
-  }, 5000); 
-};
-//to stop the tracking
-const stopTracking = () => {
-  clearInterval(trackingInterval);
-};
 
 
 //check if the user is inside the fence or outside
@@ -146,3 +157,5 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
 }
+
+});

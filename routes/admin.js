@@ -132,7 +132,8 @@ Router.delete('/users/:id', isAdmin, (req, res) => {
 });
 
 Router.get('/geo', (req,res)=>{
-    res.redirect('/home');
+  res.redirect('/home')
+    
 })
 
 

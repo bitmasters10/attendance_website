@@ -131,7 +131,32 @@ app.get('/login', (req, res) => {
 
 app.get('/home',isAuthenticated, (req, res) => {
 const admin = req.user.type === 'admin';
-    res.render('home',{admin});
+const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
+const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'offline'";
+
+        db.query(onlineUsersQuery, (err, onlineUsersResults) => {
+            if (err) {
+                console.error('Error fetching online users:', err);
+                res.status(500).send('Server Error');
+                return;
+            }
+            const onlineUsers = onlineUsersResults[0].count;
+           
+            db.query(offlineUsersQuery, (err, offUsersResults) => {
+                if (err) {
+                    console.error('Error fetching online users:', err);
+                    res.status(500).send('Server Error');
+                    return;
+                }
+                const offlineUsers = offUsersResults[0].count;
+                
+                res.render('home',{admin,  offlineUsers, onlineUsers });
+
+            });
+            
+        });
+   
+
 });
 
 
