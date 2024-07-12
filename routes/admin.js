@@ -136,7 +136,15 @@ Router.get('/geo', (req,res)=>{
     
 })
 
+Router.get('/calendar', (req,res)=>{
+    res.render('calendar')
+})
 
+Router.post('/calendar', (req,res)=>{
+    console.log(req.body);
+    
+    res.send('CHOCHO')
+})
 
 
 module.exports = Router;
