@@ -22,6 +22,21 @@ router.post('/data', (req, res) => {
     const userId = req.user.id;  
     const currentDate = new Date().toISOString().split('T')[0];
     const currentTime = new Date().toISOString().split('T')[1].split('.')[0];
+    const t = new Date();
+const currentHour = t.getHours();
+
+const startHour = 9; 
+const endHour = 17; 
+let acc
+
+
+if (currentHour >= startHour && currentHour < endHour) {
+    acc="present"
+    console.log('Current time is between 9 am and 5 pm.');
+} else {
+     acc="absent"
+    console.log('Current time is outside 9 am to 5 pm range.');
+}
 
     if (distance <= geofence.radius) {
         console.log('Inside geofence');
@@ -32,8 +47,8 @@ router.post('/data', (req, res) => {
             }
             if (results.length === 0) {
                 
-                db.query('INSERT INTO attendance (userid, status, date, signin_time) VALUES (?, ?, ?, ?)', 
-                [userId, 'online', currentDate, currentTime], (err, results) => {
+                db.query('INSERT INTO attendance (userid, status, date, signin_time,accounted_for) VALUES (?, ?, ?, ?,?)', 
+                [userId, 'online', currentDate, currentTime,acc], (err, results) => {
                     if (err) {
                         console.error('Error executing query:', err);
                         return res.status(500).json({ message: 'Server error' });
