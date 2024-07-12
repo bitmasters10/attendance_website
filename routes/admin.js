@@ -131,16 +131,16 @@ Router.delete('/users/:id', isAdmin, (req, res) => {
     });
 });
 
-Router.get('/geo', (req,res)=>{
+Router.get('/geo',isAdmin, (req,res)=>{
   res.redirect('/home')
     
 })
 
-Router.get('/calendar', (req,res)=>{
+Router.get('/calendar',isAdmin, (req,res)=>{
     res.render('calendar')
 })
 
-Router.post('/calendar/:data', (req,res)=>{
+Router.post('/calendar/:data', isAdmin,(req,res)=>{
    const {data} = req.params
    console.log(data)
     const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid     WHERE a.date = ?';

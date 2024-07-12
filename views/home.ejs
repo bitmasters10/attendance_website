@@ -14,7 +14,7 @@
             padding: 0;
         }
         #map {
-            height: 70vh;
+            height: 100vh;
             width: 100%;
         }
         .btn-location {
@@ -29,8 +29,8 @@
         .btn-location1 {
             z-index: 1000;
             position: absolute;
-            bottom: 20px;
-            left: 80%;
+            top: 2%;
+            left: 95%;
             transform: translateX(-50%);
             padding: 10px 20px;
             font-size: 1.2em;
@@ -48,15 +48,24 @@
     </style>
 </head>
 <body>
+    <% if(admin){ %>
+    <%- include('partials/sidebar') %>
+<% } %>
     <div id="map"></div>
-    <% if (admin) { %>
-        <button id="btnn" class="btn btn-primary btn-location">Find My Location</button>
-        <div class="info-box">
-            <p>Current Users Online: <%= onlineUsers %></p>
-            <p>Current Users Offline: <%= offlineUsers %></p>
-        </div>
+    <% if (!admin) { %>
+        <form action="/logout" method="post">
+
+            <button type="submit" class="btn btn-danger btn-location1 ">Logout</button>
+        </form>
+     <button id="btnn" class="btn btn-primary btn-location">Find My Location</button>
+       
+      
+    <% }else{ %>
+    <div class="info-box">
+        <p>Current Users Online: <%= onlineUsers %></p>
+        <p>Current Users Offline: <%= offlineUsers %></p>
+    </div>
     <% } %>
-    
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/js/app.js"></script>

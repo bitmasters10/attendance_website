@@ -119,10 +119,12 @@ function isAdmin(req, res, next) {
     res.redirect('/admin/login');
 }
 
-app.get('/', (req, res) => {
+app.get('/register', (req, res) => {
     res.render('register');
 });
-
+app.get('/', (req, res) => {
+    res.render('cover');
+});
 app.get('/login', (req, res) => {
     res.render('login');
 });
@@ -228,7 +230,7 @@ process.on('SIGINT', () => {
     });
 });
 
-app.get('/users', (req, res) => {
+app.get('/users',isAuthenticated ,(req, res) => {
     const q = "SELECT * FROM attendance;";
    // Get current date in GMT+5:30 (India Standard Time)
 const ad = new Date();
@@ -254,7 +256,7 @@ console.log(formattedDate); // Output: "2024-07-12" for today's date in GMT+5:30
     });
 });
 
-app.get('/loc/:lat/:long', async (req, res) => {
+app.get('/loc/:lat/:long',isAuthenticated, async (req, res) => {
     const { lat, long } = req.params;
     const id = req.user.id;
     function checkProximity(lat, lon, centerLat, centerLon, radiusInMeters) {
