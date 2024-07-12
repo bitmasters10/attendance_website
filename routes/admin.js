@@ -32,8 +32,9 @@ Router.get('/login', (req,res)=>{
 
 
 
-Router.get('/dashboard',isAdmin,(req,res)=>{
-    const query = 'SELECT count(*) as no FROM users';
+Router.get('/dashboard', isAdmin, (req, res) => {
+    const totalUsersQuery = 'SELECT COUNT(*) as count FROM users';
+    const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
 
     sessionStore.all((err, sessions) => {
         if (err) {
@@ -42,30 +43,29 @@ Router.get('/dashboard',isAdmin,(req,res)=>{
             return;
         }
         const loggedInUsers = Object.values(sessions).filter(session => session.passport && session.passport.user).length;
-        const totalUsersQuery = "SELECT COUNT(*) as count FROM users";
 
-        db.query(query,  (err, results) => {
-            if (err) return err;
-            const nou = results[0].no;
-           
+        db.query(totalUsersQuery, (err, totalUsersResults) => {
+            if (err) {
+                console.error('Error fetching total users:', err);
+                res.status(500).send('Server Error');
+                return;
+            }
+            const totalUsers = totalUsersResults[0].count;
 
-            db.query(totalUsersQuery, (err, results) => {
+            db.query(onlineUsersQuery, (err, onlineUsersResults) => {
                 if (err) {
-                    console.error('Error fetching total users:', err);
+                    console.error('Error fetching online users:', err);
                     res.status(500).send('Server Error');
                     return;
                 }
-                const totalUsers = results[0].count;
-                const loggedOutUsers = totalUsers - loggedInUsers ;
-                res.render('dashboard',{nou ,loggedInUsers , loggedOutUsers});
-               
+                const onlineUsers = onlineUsersResults[0].count;
+                const loggedOutUsers = totalUsers - onlineUsers;
+                res.render('dashboard', { totalUsers, loggedInUsers, loggedOutUsers, onlineUsers });
             });
-            
         });
-    
-        });
-       
-})
+    });
+});
+
 
 
 
