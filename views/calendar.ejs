@@ -3,14 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <title>Document</title>
 </head>
 <body>
-    <form action="/admin/calendar" method="post"> 
+    <form   id="f"> 
         <center><h1>Attendance</h1></center>
-        <label for="da">Enter Date</label>
-        <input type="date" name="date" id="da">
+        <label for="date">Enter Date</label>
+        <input type="date" name="date" id="date">
         <button type="submit">Generate</button>
+
     </form>
+    <script>
+        const form = document.querySelector('#f');
+        
+        form.addEventListener('submit', async(e)=>{
+            e.preventDefault();
+            // const date = document.querySelector('#date')
+            
+            const data = form.elements.date.value;
+            console.log(data)
+            const res = await axios.post(`http://localhost:3000/admin/calendar/${data}`);
+            console.log(res)
+        })
+    </script>
 </body>
 </html>

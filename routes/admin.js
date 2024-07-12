@@ -140,10 +140,16 @@ Router.get('/calendar', (req,res)=>{
     res.render('calendar')
 })
 
-Router.post('/calendar', (req,res)=>{
-    console.log(req.body);
-    
-    res.send('CHOCHO')
+Router.post('/calendar/:data', (req,res)=>{
+   const {data} = req.params
+   console.log(data)
+    const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid     WHERE a.date = ?';
+    db.query(query,data,(err,results)=>{
+        if (err ){return err};
+       
+      res.json(results);
+    }) 
+  
 })
 
 
