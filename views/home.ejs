@@ -39,11 +39,12 @@
 </head>
 <body>
     <div id="map"></div>
-    <% if (!admin) { %>
+    <% if (admin) { %>
         <button id="btnn" class="btn btn-primary btn-location">Find My Location</button>
-    <% }%>
-    <p>Current Users Online: <%= onlineUsers  %></p>
+        <p>Current Users Online: <%= onlineUsers  %></p>
     <p>Current Users Offine: <%= offlineUsers  %></p>
+    <% }%>
+    
 
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
