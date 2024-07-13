@@ -113,6 +113,7 @@ Router.delete('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
     const query = 'DELETE FROM users WHERE id = ?';
     const query2 = 'DELETE FROM attendance WHERE userid = ?';
+    
     db.query(query2, [id], (err, results) => {
         if (err) {
             console.error('Error deleting user:', err);
