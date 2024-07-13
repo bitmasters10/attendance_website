@@ -18,6 +18,7 @@ const db = mysql.createConnection({
 
 const sessionStore = new MySQLStore({}, db.promise());
 
+// Middleware to check if user is admin
 function isAdmin(req, res, next) {
     if (req.isAuthenticated() && req.user.type === 'admin') {
         return next();
@@ -25,11 +26,12 @@ function isAdmin(req, res, next) {
     res.redirect('/admin/login');
 }
 
-
+// Admin login route
 Router.get('/login', (req, res) => {
     res.render('admin-login');
 });
 
+// Admin dashboard route
 Router.get('/dashboard', isAdmin, (req, res) => {
     const totalUsersQuery = 'SELECT COUNT(*) as count FROM users';
     const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
@@ -64,7 +66,7 @@ Router.get('/dashboard', isAdmin, (req, res) => {
     });
 });
 
-
+// Route to get all users
 Router.get('/users', isAdmin, (req, res) => {
     const query = "SELECT * FROM users;";
     db.query(query, (err, results) => {
@@ -77,7 +79,7 @@ Router.get('/users', isAdmin, (req, res) => {
     });
 });
 
-
+// Route to get a single user for updating
 Router.get('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
     const query = "SELECT * FROM users WHERE id = ?;";
@@ -91,7 +93,7 @@ Router.get('/users/:id', isAdmin, (req, res) => {
     });
 });
 
-
+// Route to update a user
 Router.patch('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
     const { username, email } = req.body;
@@ -106,29 +108,41 @@ Router.patch('/users/:id', isAdmin, (req, res) => {
     });
 });
 
-
+// Route to delete a user
 Router.delete('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
     const query = 'DELETE FROM users WHERE id = ?';
-    db.query(query, [id], (err, results) => {
+    const query2 = 'DELETE FROM attendance WHERE userid = ?';
+    db.query(query2, [id], (err, results) => {
         if (err) {
             console.error('Error deleting user:', err);
             res.status(500).send('Server Error');
             return;
         }
-        res.redirect('/admin/users');
+        db.query(query, [id], (err, results) => {
+            if (err) {
+                console.error('Error deleting user:', err);
+                res.status(500).send('Server Error');
+                return;
+            }
+            
+            res.redirect('/admin/users');
+        });
+       
     });
 });
 
+// Route to handle geo redirects
 Router.get('/geo', isAdmin, (req, res) => {
     res.redirect('/home');
 });
 
+// Route to render calendar page
 Router.get('/calendar', isAdmin, (req, res) => {
     res.render('calendar');
 });
 
-
+// Route to fetch calendar data
 Router.post('/calendar/:data', isAdmin, (req, res) => {
     const { data } = req.params;
     const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid WHERE a.date = ?';
