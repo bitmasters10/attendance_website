@@ -10,7 +10,7 @@ font-family: 'Work Sans', sans-serif;
 
 
 .bgimg {
-    background-image:   linear-gradient(rgba(0, 0, 0, 0.475),rgba(0, 0, 0, 0.475) ), url("https://c1.wallpaperflare.com/preview/427/745/192/notebook-natural-laptop-macbook.jpg");
+    background-image:   linear-gradient(rgba(0, 0, 0, 0.475),rgba(0, 0, 0, 0.741) ), url("https://miro.medium.com/v2/resize:fit:1400/0*PWVcE9WILNwj1kHR.jpg");
     background-size: cover;
     image-resolution: 400px;
     background-repeat: no-repeat;
@@ -51,7 +51,7 @@ font-family: 'Work Sans', sans-serif;
     content: '';
     height: 3px;
     width: 0;
-    background: green;
+    background: #FFAAAA;
     position: absolute;
     left: 0;
     bottom: -10px;
@@ -86,7 +86,7 @@ font-family: 'Work Sans', sans-serif;
     margin: 20px 10px;
     border-radius: 25px;
     font-weight: bold;
-    border: 2px solid green;
+    border: 2px solid #FFAAAA;
     background: transparent;
     color: white;
     cursor: pointer;
@@ -94,7 +94,7 @@ font-family: 'Work Sans', sans-serif;
     overflow: hidden;
 }
 span{
-    background-color: green;
+    background-color: #FFAAAA;
     height: 100%;
     width: 0;
     border-radius: 25px;

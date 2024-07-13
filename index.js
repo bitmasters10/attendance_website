@@ -21,8 +21,8 @@ const db = mysql.createConnection({
 });
 
 // Predefined admin credentials
-const adminEmail = 'sushantchoco@gmail.com';
-const adminPassword = 'kamatipura';
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminPassword = process.env.ADMIN_PASS;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
