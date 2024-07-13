@@ -3,10 +3,11 @@ const Router = express.Router();
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const methodOverride = require('method-override');
+const mysql = require('mysql2');
 
-
+// Middleware setup
 Router.use(methodOverride('_method'));
-const mysql  = require('mysql2')
+
 const db = mysql.createConnection({
     host: 'sql12.freesqldatabase.com',
     user: 'sql12718865',
@@ -14,8 +15,8 @@ const db = mysql.createConnection({
     database: 'sql12718865',
     port: 3306
 });
-const sessionStore = new MySQLStore({}, db.promise());
 
+const sessionStore = new MySQLStore({}, db.promise());
 
 function isAdmin(req, res, next) {
     if (req.isAuthenticated() && req.user.type === 'admin') {
@@ -25,12 +26,9 @@ function isAdmin(req, res, next) {
 }
 
 
-
-Router.get('/login', (req,res)=>{
+Router.get('/login', (req, res) => {
     res.render('admin-login');
-})
-
-
+});
 
 Router.get('/dashboard', isAdmin, (req, res) => {
     const totalUsersQuery = 'SELECT COUNT(*) as count FROM users';
@@ -67,10 +65,6 @@ Router.get('/dashboard', isAdmin, (req, res) => {
 });
 
 
-
-
-
-
 Router.get('/users', isAdmin, (req, res) => {
     const query = "SELECT * FROM users;";
     db.query(query, (err, results) => {
@@ -79,44 +73,39 @@ Router.get('/users', isAdmin, (req, res) => {
             res.status(500).send('Server Error');
             return;
         }
-        res.render('user', {users: results})
-    
+        res.render('user', { users: results });
+    });
 });
 
-});
 
-
-Router.get('/users/:id',isAdmin,(req,res)=>{
-    const {id} = req.params
-    const query = "SELECT * FROM users where id = ?;";
-    db.query(query,id, (err, results) => {
+Router.get('/users/:id', isAdmin, (req, res) => {
+    const { id } = req.params;
+    const query = "SELECT * FROM users WHERE id = ?;";
+    db.query(query, [id], (err, results) => {
         if (err) {
-            console.error('Error fetching users:', err);
+            console.error('Error fetching user:', err);
             res.status(500).send('Server Error');
             return;
         }
-       
-        res.render('update', {users: results[0]})
-    
+        res.render('update', { users: results[0] });
+    });
 });
-    
-})
+
 
 Router.patch('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
     const { username, email } = req.body;
-        const query = 'UPDATE users SET username = ?, email = ? WHERE id = ?';
-        db.query(query, [username, email, id], (err, results) => {
-            if (err) {
-                console.error('Error updating user:', err);
-                res.status(500).send('Server Error');
-                return;
-            }
-           
-            res.redirect('/admin/users')
-        });
+    const query = 'UPDATE users SET username = ?, email = ? WHERE id = ?';
+    db.query(query, [username, email, id], (err, results) => {
+        if (err) {
+            console.error('Error updating user:', err);
+            res.status(500).send('Server Error');
+            return;
+        }
+        res.redirect('/admin/users');
     });
-// });
+});
+
 
 Router.delete('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
@@ -131,26 +120,26 @@ Router.delete('/users/:id', isAdmin, (req, res) => {
     });
 });
 
-Router.get('/geo',isAdmin, (req,res)=>{
-  res.redirect('/home')
-    
-})
+Router.get('/geo', isAdmin, (req, res) => {
+    res.redirect('/home');
+});
 
-Router.get('/calendar',isAdmin, (req,res)=>{
-    res.render('calendar')
-})
+Router.get('/calendar', isAdmin, (req, res) => {
+    res.render('calendar');
+});
 
-Router.post('/calendar/:data', isAdmin,(req,res)=>{
-   const {data} = req.params
-   console.log(data)
-    const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid     WHERE a.date = ?';
-    db.query(query,data,(err,results)=>{
-        if (err ){return err};
-       
-      res.json(results);
-    }) 
-  
-})
 
+Router.post('/calendar/:data', isAdmin, (req, res) => {
+    const { data } = req.params;
+    const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid WHERE a.date = ?';
+    db.query(query, [data], (err, results) => {
+        if (err) {
+            console.error('Error fetching calendar data:', err);
+            res.status(500).send('Server Error');
+            return;
+        }
+        res.json(results);
+    });
+});
 
 module.exports = Router;

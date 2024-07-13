@@ -3,13 +3,12 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const passport = require('passport');
-
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const mysql  = require('mysql2')
+const mysql = require('mysql2');
 dotenv.config();
 
 const app = express();
@@ -32,16 +31,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const sessionStore = new MySQLStore({}, db.promise());
 
-app.use(session({ secret: 'your-secret-key', resave: false, saveUninitialized: false , store: sessionStore}));
+app.use(session({ secret: 'your-secret-key', resave: false, saveUninitialized: false, store: sessionStore }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cors());
-app.use('/admin', require('./routes/admin'))
-app.use('/geo', require('./routes/geo'))
-
-// app.use(express.static(path.join(__dirname, 'views')));
+app.use('/admin', require('./routes/admin'));
+app.use('/geo', require('./routes/geo'));
 app.use(express.static('public'));
-
 
 db.connect((err) => {
     if (err) {
@@ -122,20 +118,21 @@ function isAdmin(req, res, next) {
 app.get('/register', (req, res) => {
     res.render('register');
 });
+
 app.get('/', (req, res) => {
     res.render('cover');
 });
+
 app.get('/login', (req, res) => {
     res.render('login');
 });
 
+app.get('/home', isAuthenticated, (req, res) => {
+    const admin = req.user.type === 'admin';
+    const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
+    const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'offline'";
 
-
-app.get('/home',isAuthenticated, (req, res) => {
-const admin = req.user.type === 'admin';
-const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
-const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'offline'";
-
+    try {
         db.query(onlineUsersQuery, (err, onlineUsersResults) => {
             if (err) {
                 console.error('Error fetching online users:', err);
@@ -143,7 +140,7 @@ const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendanc
                 return;
             }
             const onlineUsers = onlineUsersResults[0].count;
-           
+
             db.query(offlineUsersQuery, (err, offUsersResults) => {
                 if (err) {
                     console.error('Error fetching online users:', err);
@@ -151,25 +148,20 @@ const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendanc
                     return;
                 }
                 const offlineUsers = offUsersResults[0].count;
-                
-                res.render('home',{admin,  offlineUsers, onlineUsers });
 
+                res.render('home', { admin, offlineUsers, onlineUsers });
             });
-            
         });
-   
-
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).send('Server Error');
+    }
 });
 
-
-app.post('/signup', (req, res) => {
+app.post('/signup', async (req, res) => {
     const { username, eid, email, password } = req.body;
-    bcrypt.hash(password, 10, (err, hashedPassword) => {
-        if (err) {
-            console.error('Error hashing password:', err);
-            res.status(500).send('Server Error');
-            return;
-        }
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)';
         db.query(query, [eid, username, email, hashedPassword], (err, results) => {
             if (err) {
@@ -180,7 +172,10 @@ app.post('/signup', (req, res) => {
             console.log(results);
             res.redirect('/login');
         });
-    });
+    } catch (err) {
+        console.error('Error hashing password:', err);
+        res.status(500).send('Server Error');
+    }
 });
 
 app.post('/login', (req, res, next) => {
@@ -230,91 +225,30 @@ process.on('SIGINT', () => {
     });
 });
 
-app.get('/users',isAuthenticated ,(req, res) => {
+app.get('/users', isAuthenticated, (req, res) => {
     const q = "SELECT * FROM attendance;";
-   // Get current date in GMT+5:30 (India Standard Time)
-const ad = new Date();
+    const ad = new Date();
+    const indiaTime = new Date(ad.getTime() + (330 * 60000));
+    const year = indiaTime.getFullYear();
+    const month = indiaTime.getMonth() + 1;
+    const day = indiaTime.getDate();
+    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    console.log(formattedDate);
 
-const indiaTime = new Date(ad.getTime() + (330 * 60000)); // GMT+5:30 offset
-
-// Extract year, month, and day
-const year = indiaTime.getFullYear();
-const month = indiaTime.getMonth() + 1; // Month is zero-indexed, so add 1
-const day = indiaTime.getDate();
-
-// Format date string
-const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-
-console.log(formattedDate); // Output: "2024-07-12" for today's date in GMT+5:30 (India Standard Time)
-
-    db.query(q, (err, results) => {
-        if (err) {
-            res.send("Error: " + err);
-        }
-        res.json(results);
-        
-    });
+    try {
+        db.query(q, (err, results) => {
+            if (err) {
+                res.send("Error: " + err);
+            }
+            res.json(results);
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).send('Server Error');
+    }
 });
 
-app.get('/loc/:lat/:long',isAuthenticated, async (req, res) => {
-    const { lat, long } = req.params;
-    const id = req.user.id;
-    function checkProximity(lat, lon, centerLat, centerLon, radiusInMeters) {
-        const R = 6371000;
-        const latDiff = deg2rad(lat - centerLat);
-        const lonDiff = deg2rad(lon - centerLon);
-        const a =
-            Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
-            Math.cos(deg2rad(centerLat)) * Math.cos(deg2rad(lat)) *
-            Math.sin(lonDiff / 2) * Math.sin(lonDiff / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
 
-        return distance <= radiusInMeters;
-    }
-
-    function deg2rad(deg) {
-        return deg * (Math.PI / 180);
-    }
-
-    const centerLat = 19.0748;
-    const centerLon = 72.8856;
-    const radiusInMeters = 100;
-
-    let present = await checkProximity(lat, long, centerLat, centerLon, radiusInMeters);
-    console.log(lat, long);
-
-    console.log('Is within 100 meters:', present);
-    if (present) {
-        let attend = "present";
-        const seletq = "SELECT * FROM attendance WHERE iuserid = ? and date = ?;";
-        db.query(seletq, [id, Date()], (err, results) => {
-            if (err) {
-                res.send("Error while saving: " + err);
-            }
-            console.log(results);
-
-            if (results.length === 0) {
-                const insq = "INSERT INTO attendance (iuserid, date, attend) VALUES (?, ?, ?);";
-                db.query(insq, [id, Date(), attend], (err, results) => {
-                    if (err) {
-                        res.send("Error saving: " + err);
-                    }
-                    res.send(results);
-                })
-            } else {
-                console.log(results);
-                res.send("Cannot update at the moment");
-            }
-        })
-
-    } else {
-        res.send("You are not in range of the college, try moving a bit closer.");
-    }
-
-    console.log("Received");
-    console.log(`id=${id}`);
-})
 
 const port = 3000;
 app.listen(port, () => {
