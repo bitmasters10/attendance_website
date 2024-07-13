@@ -58,12 +58,15 @@
     <div id="map"></div>
     
     <% if (!admin) { %>
-
+        <div class="info-box">
+            <p></p>
+        </div>
         <form action="/logout" method="post">
 
             <button type="submit" class="btn btn-danger btn-location1 ">Logout</button>
         </form>
      <button id="btnn" class="btn btn-primary btn-location">Find My Location</button>
+     <p></p>
        
       
     <% }else{ %>

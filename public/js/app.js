@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-
+const para=document.querySelector("p")
 const showGeofenceBtn = document.querySelector('#showGeofenceBtn'); 
 // const p = document.querySelector('p');
 // const stop = document.querySelector('#stop');
@@ -44,7 +44,11 @@ document.getElementById('btnn').addEventListener('click', () => {
               map.setView([latitude, longitude], 16);
               marker.setLatLng([latitude, longitude]);
               axios.post('/geo/data', { latitude, longitude })
-                  .then(response => console.log(response.data))
+                  .then( (response)=> {
+                     para.innerHTML="";
+      para.innerHTML=`<p>${response.data.message}</p>`
+                    console.log(response.data)
+                  })
                   .catch(error => console.error(error));
           });
       }, 5000);
@@ -112,9 +116,12 @@ const success = (pos) => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
+      
       return response.json();
+     
     })
     .then(data => {
+     
       console.log('Location data sent successfully:', data);
     })
     .catch(error => {
