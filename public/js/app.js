@@ -6,6 +6,8 @@ const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
 // const stop = document.querySelector('#stop');
 
 var map = L.map('map').setView([51.505, -0.09], 15);
+let mylat=0;
+let mylong=0;
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -41,7 +43,23 @@ document.getElementById('btnn').addEventListener('click', () => {
       setInterval(() => {
           navigator.geolocation.getCurrentPosition(position => {
               const { latitude, longitude } = position.coords;
-              map.setView([latitude, longitude], 16);
+              if(latitude!=mylat || longitude!=mylong){
+                callapi(latitude,longitude)
+
+              }
+              
+          });
+      }, 5000);
+      // showGeofenceCircle();
+  } else {
+      alert('old browseer pls use new one.');
+  }
+});
+
+function callapi(latitude,longitude){
+  mylat= latitude;
+  mylong=longitude;
+  map.setView([latitude, longitude], 16);
               marker.setLatLng([latitude, longitude]);
               axios.post('/geo/data', { latitude, longitude })
                   .then( (response)=> {
@@ -50,14 +68,7 @@ document.getElementById('btnn').addEventListener('click', () => {
                     console.log(response.data)
                   })
                   .catch(error => console.error(error));
-          });
-      }, 5000);
-      // showGeofenceCircle();
-  } else {
-      alert('old browseer pls use new one.');
-  }
-});
-// };
+}
 if(showGeofenceBtn){
  
   showGeofenceBtn.addEventListener('click', () => {

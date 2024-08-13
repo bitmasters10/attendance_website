@@ -10,15 +10,18 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mysql = require('mysql2');
 dotenv.config();
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const db = mysql.createConnection({
-    host: 'sql12.freesqldatabase.com',
-    user: 'sql12718865',
-    password: '19WjXCRzvG',
-    database: 'sql12718865',
-    port: 3306
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: "",
+    database: "sql12718865",
+    port: process.env.DB_PORT 
+   
 });
+
 
 // Predefined admin credentials
 const adminEmail = process.env.ADMIN_EMAIL;
@@ -157,13 +160,36 @@ app.get('/home', isAuthenticated, (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+async function idmake(table, column) {
+    let id = uuidv4();
+    const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
 
+    return new Promise((resolve, reject) => {
+        db.query(query, [id], (err, rows) => {
+            if (err) {
+                console.error('Error executing query:', err);
+                return reject(err);  // Reject the promise if there's an error
+            }
+
+            if (rows.length === 0) {
+                return resolve(id);  // Resolve the promise with the unique ID
+            } else {
+                // Recursively call idmake until a unique ID is found
+                idmake(table, column).then(resolve).catch(reject);
+            }
+        });
+    });
+}
+
+  
 app.post('/signup', async (req, res) => {
+    let ide= await idmake("users","id")
+console.log(ide);
     const { username, eid, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)';
-        db.query(query, [eid, username, email, hashedPassword], (err, results) => {
+        db.query(query, [ide, username, email, hashedPassword], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err);
                 res.status(500).send('Server Error');

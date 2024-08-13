@@ -3,11 +3,12 @@ const router = express.Router();
 const geolib = require('geolib');
 const mysql = require('mysql2');
 const db = mysql.createConnection({
-    host: 'sql12.freesqldatabase.com',
-    user: 'sql12718865',
-    password: '19WjXCRzvG',
-    database: 'sql12718865',
-    port: 3306
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: "",
+    database: "sql12718865",
+    port: process.env.DB_PORT 
+   
 });
 
 router.post('/data', async (req, res) => {
