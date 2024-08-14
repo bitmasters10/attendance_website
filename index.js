@@ -196,7 +196,7 @@ console.log(ide);
                 return;
             }
             console.log(results);
-            res.redirect('/login');
+            res.redirect('/admin/users');
         });
     } catch (err) {
         console.error('Error hashing password:', err);
@@ -205,6 +205,7 @@ console.log(ide);
 });
 
 app.post('/login', (req, res, next) => {
+    console.log(req.body);
     passport.authenticate('user-local', (err, user, info) => {
         if (err) {
             console.error('Authentication error:', err);
@@ -251,7 +252,8 @@ process.on('SIGINT', () => {
     });
 });
 
-app.get('/users', isAuthenticated, (req, res) => {
+app.get('/users', (req, res) => {
+    
     const q = "SELECT * FROM attendance;";
     const ad = new Date();
     const indiaTime = new Date(ad.getTime() + (330 * 60000));

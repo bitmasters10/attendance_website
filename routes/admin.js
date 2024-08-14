@@ -80,6 +80,15 @@ Router.get('/users', isAdmin, (req, res) => {
     });
 });
 
+
+Router.get('/users/create', isAdmin, (req,res)=>{
+    res.render('register.ejs')
+})
+
+
+
+
+
 // Route to get a single user for updating
 Router.get('/users/:id', isAdmin, (req, res) => {
     const { id } = req.params;
