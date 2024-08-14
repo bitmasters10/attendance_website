@@ -308,7 +308,10 @@ const customIdSocketMap = new Map();
 
 io.on("connection", (socket) => {
     const customId = socket.request.session.passport.user.id;
+
     customIdSocketMap.set(customId, socket);
+
+    socket.emit("custom-id", { customId });
 
     console.log(`User with custom ID ${customId} connected with socket ID: ${socket.id}`);
 

@@ -1,3 +1,6 @@
+// Initialize Socket.IO
+const socket = io();
+
 document.addEventListener('DOMContentLoaded', () => {
   const para = document.querySelector("p");
   const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
@@ -13,12 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let geofenceCircle = null;
   let userMarker = null;
+  let userMarkers = {};
   let isInsideGeofence = false;
-
+let id = null;
   const geofenceLat = 19.07448;
   const geofenceLng = 72.8812857;
   const geofenceRadius = 500;
   const marker = L.marker([51.505, -0.09]).addTo(map);
+
+
+
+// geofence
 
   const showGeofenceCircle = () => {
       if (!geofenceCircle) {
@@ -33,6 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   };
   showGeofenceCircle();
+
+
+
+//userpermission
 
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
@@ -49,12 +61,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   });
 
+
+  socket.on("custom-id", (data) => {
+    const { customId } = data;
+    id = customId;
+    console.log("Received custom ID:", customId);
+  });
+
   function callapi(latitude, longitude) {
       mylat = latitude;
       mylong = longitude;
       map.setView([latitude, longitude], 16);
       marker.setLatLng([latitude, longitude]);
-      socket.emit("send-admin", { latitude, longitude });
+      socket.emit("send-admin", { latitude, longitude});
+      console.log(id)
       axios.post('/geo/data', { latitude, longitude })
           .then(response => {
               para.innerHTML = "";
@@ -69,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('Geofence button clicked');
       });
   }
+
 
   const success = (pos) => {
       const lat = pos.coords.latitude;
@@ -139,10 +160,35 @@ document.addEventListener('DOMContentLoaded', () => {
   function deg2rad(deg) {
       return deg * (Math.PI / 180);
   }
-});
 
-// Initialize Socket.IO
-const socket = io();
+
+
+const updateUserMarkers = (data) => {
+  const {id , latitude, longitude } = data;
+  const userLocation = [latitude, longitude];
+console.log(id)
+  if (!userMarkers[id]) {
+      // Create a new marker if it doesn't exist
+      userMarkers[id] = L.marker(userLocation).addTo(map)
+          .bindPopup(`User ${id} is here.`)
+          .openPopup();
+  } else {
+      // Update the marker's position if it already exists
+      userMarkers[id].setLatLng(userLocation);
+  }
+
+  const isInsideGeofence = checkGeofenceStatus(userLocation);
+
+  if (isInsideGeofence) {
+      console.log(`User ${id} entered the geofence at:`, new Date().toLocaleString());
+  } else {
+      console.log(`User ${id} left the geofence at:`, new Date().toLocaleString());
+  }
+};
+
+
+
+
 
 socket.on("connect", () => {
   console.log("Connected to server with ID: " + socket.id);
@@ -151,11 +197,8 @@ socket.on("connect", () => {
 socket.on("receive-message", (data) => {
   console.log(data);
 
-  // Extract latitude and longitude from the data object
-  const { latitude, longitude } = data;
+  updateUserMarkers(data);
 
-  // Create a marker at the specified latitude and longitude
-  L.marker([latitude, longitude]).addTo(map)
-      .bindPopup("You are here.")
-      .openPopup();
+
+});
 });
