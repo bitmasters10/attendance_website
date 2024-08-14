@@ -1,6 +1,3 @@
-// Initialize Socket.IO
-const socket = io();
-
 document.addEventListener('DOMContentLoaded', () => {
   const para = document.querySelector("p");
   const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
@@ -160,11 +157,11 @@ let id = null;
   function deg2rad(deg) {
       return deg * (Math.PI / 180);
   }
-
+});
 
 
 const updateUserMarkers = (data) => {
-  const {id , latitude, longitude } = data;
+  const {id ,latitude, longitude } = data;
   const userLocation = [latitude, longitude];
 console.log(id)
   if (!userMarkers[id]) {
@@ -188,7 +185,8 @@ console.log(id)
 
 
 
-
+// Initialize Socket.IO
+const socket = io();
 
 socket.on("connect", () => {
   console.log("Connected to server with ID: " + socket.id);
@@ -200,5 +198,4 @@ socket.on("receive-message", (data) => {
   updateUserMarkers(data);
 
 
-});
 });
