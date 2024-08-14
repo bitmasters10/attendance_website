@@ -11,6 +11,8 @@ const dotenv = require('dotenv');
 const mysql = require('mysql2');
 dotenv.config();
 const { v4: uuidv4 } = require('uuid');
+const { Server } = require("socket.io");
+const { createServer } = require("http");
 
 const app = express();
 const db = mysql.createConnection({
@@ -26,7 +28,8 @@ const db = mysql.createConnection({
 // Predefined admin credentials
 const adminEmail = process.env.ADMIN_EMAIL;
 const adminPassword = process.env.ADMIN_PASS;
-
+const server = createServer(app);
+const io = new Server(server);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 
@@ -34,10 +37,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const sessionStore = new MySQLStore({}, db.promise());
 
-app.use(session({ secret: 'your-secret-key', resave: false, saveUninitialized: false, store: sessionStore }));
+const sessionMiddleware = session({ 
+    secret: 'your-secret-key', 
+    resave: false, 
+    saveUninitialized: false, 
+    store: sessionStore 
+});
+
+app.use(sessionMiddleware);
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cors());
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, next);
+});
 app.use('/admin', require('./routes/admin'));
 app.use('/geo', require('./routes/geo'));
 app.use(express.static('public'));
@@ -279,6 +293,43 @@ app.get('/users', (req, res) => {
 
 
 const port = 3000;
-app.listen(port, () => {
+io.use((socket, next) => {
+    // Middleware to access session from socket
+    const session = socket.request.session;
+    if (session && session.passport && session.passport.user) {
+        next();
+    } else {
+        next(new Error("Not authenticated"));
+    }
+});
+
+
+const customIdSocketMap = new Map();
+
+io.on("connection", (socket) => {
+    const customId = socket.request.session.passport.user.id;
+    customIdSocketMap.set(customId, socket);
+
+    console.log(`User with custom ID ${customId} connected with socket ID: ${socket.id}`);
+
+    socket.on("disconnect", () => {
+        customIdSocketMap.delete(customId);
+        console.log(`User with custom ID ${customId} disconnected`);
+    });
+
+    socket.on("send-admin", (data) => {
+        const targetCustomId = 1;
+        const targetSocket = customIdSocketMap.get(targetCustomId);
+
+        if (targetSocket) {
+            targetSocket.emit("receive-message", data);
+            console.log(`Message sent to user with custom ID ${targetCustomId}`);
+        } else {
+            console.log(`User with custom ID ${targetCustomId} is not connected`);
+        }
+    });
+});
+
+server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
