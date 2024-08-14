@@ -1,3 +1,5 @@
+let userMarkers = {};
+
 document.addEventListener('DOMContentLoaded', () => {
   const para = document.querySelector("p");
   const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
@@ -13,18 +15,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let geofenceCircle = null;
   let userMarker = null;
-  let userMarkers = {};
   let isInsideGeofence = false;
-let id = null;
+  let id = null;
+
   const geofenceLat = 19.07448;
   const geofenceLng = 72.8812857;
   const geofenceRadius = 500;
   const marker = L.marker([51.505, -0.09]).addTo(map);
 
+  // Initialize Socket.IO
+  const socket = io();
 
+  socket.on("connect", () => {
+    console.log("Connected to server with ID: " + socket.id);
+  });
 
-// geofence
+  socket.on('connect_error', (err) => {
+    console.log(`Connection failed due to: ${err.message}`);
+  });
 
+  socket.on('connect_timeout', () => {
+    console.log('Connection timed out.');
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log(`Disconnected: ${reason}`);
+  });
+
+  socket.on("custom-id", (data) => {
+    const { customId } = data;
+    id = customId;
+    console.log("Received custom ID:", customId);
+  });
+
+  // Define updateUserMarkers before its usage
+  const updateUserMarkers = (data) => {
+      const { id, latitude, longitude } = data;
+      const userLocation = [latitude, longitude];
+      console.log(id);
+
+      if (!userMarkers[id]) {
+          // Create a new marker if it doesn't exist
+          userMarkers[id] = L.marker(userLocation).addTo(map)
+              .bindPopup(`User ${id} is here.`)
+              .openPopup();
+      } else {
+          // Update the marker's position if it already exists
+          userMarkers[id].setLatLng(userLocation);
+      }
+
+      const isInsideGeofence = checkGeofenceStatus(userLocation);
+
+      if (isInsideGeofence) {
+          console.log(`User ${id} entered the geofence at:`, new Date().toLocaleString());
+      } else {
+          console.log(`User ${id} left the geofence at:`, new Date().toLocaleString());
+      }
+  };
+
+  socket.on("receive-message", (data) => {
+    console.log(data);
+    updateUserMarkers(data);
+  });
+
+  // Show geofence
   const showGeofenceCircle = () => {
       if (!geofenceCircle) {
           geofenceCircle = L.circle([geofenceLat, geofenceLng], {
@@ -39,10 +93,7 @@ let id = null;
   };
   showGeofenceCircle();
 
-
-
-//userpermission
-
+  // User permission
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
           setInterval(() => {
@@ -58,20 +109,13 @@ let id = null;
       }
   });
 
-
-  socket.on("custom-id", (data) => {
-    const { customId } = data;
-    id = customId;
-    console.log("Received custom ID:", customId);
-  });
-
   function callapi(latitude, longitude) {
       mylat = latitude;
       mylong = longitude;
       map.setView([latitude, longitude], 16);
       marker.setLatLng([latitude, longitude]);
-      socket.emit("send-admin", { latitude, longitude});
-      console.log(id)
+      socket.emit("send-admin", { latitude, longitude,id });
+     
       axios.post('/geo/data', { latitude, longitude })
           .then(response => {
               para.innerHTML = "";
@@ -86,56 +130,6 @@ let id = null;
           alert('Geofence button clicked');
       });
   }
-
-
-  const success = (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      console.log('Your current location:');
-      console.log(`Latitude: ${lat}`);
-      console.log(`Longitude: ${lng}`);
-      const userLocation = [lat, lng];
-
-      if (!userMarker) {
-          userMarker = L.marker(userLocation).addTo(map)
-              .bindPopup("You are here.")
-              .openPopup();
-      } else {
-          userMarker.setLatLng(userLocation);
-      }
-
-      const wasInsideGeofence = isInsideGeofence;
-      isInsideGeofence = checkGeofenceStatus(userLocation);
-
-      if (isInsideGeofence && !wasInsideGeofence) {
-          console.log('Entered geofence at:', new Date().toLocaleString());
-      } else if (!isInsideGeofence && wasInsideGeofence) {
-          console.log('Left geofence at:', new Date().toLocaleString());
-      }
-
-      const data = { latitude: lat, longitude: lng, timestamp: new Date() };
-      fetch('http://localhost:3000/geo/data', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-      })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Network response was not ok');
-          }
-          return response.json();
-      })
-      .then(data => {
-          console.log('Location data sent successfully:', data);
-      })
-      .catch(error => {
-          console.error('Error sending location data:', error);
-      });
-
-      map.setView(userLocation, 16);
-  };
 
   const checkGeofenceStatus = (userLocation) => {
       const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
@@ -157,45 +151,4 @@ let id = null;
   function deg2rad(deg) {
       return deg * (Math.PI / 180);
   }
-});
-
-
-const updateUserMarkers = (data) => {
-  const {id ,latitude, longitude } = data;
-  const userLocation = [latitude, longitude];
-console.log(id)
-  if (!userMarkers[id]) {
-      // Create a new marker if it doesn't exist
-      userMarkers[id] = L.marker(userLocation).addTo(map)
-          .bindPopup(`User ${id} is here.`)
-          .openPopup();
-  } else {
-      // Update the marker's position if it already exists
-      userMarkers[id].setLatLng(userLocation);
-  }
-
-  const isInsideGeofence = checkGeofenceStatus(userLocation);
-
-  if (isInsideGeofence) {
-      console.log(`User ${id} entered the geofence at:`, new Date().toLocaleString());
-  } else {
-      console.log(`User ${id} left the geofence at:`, new Date().toLocaleString());
-  }
-};
-
-
-
-// Initialize Socket.IO
-const socket = io();
-
-socket.on("connect", () => {
-  console.log("Connected to server with ID: " + socket.id);
-});
-
-socket.on("receive-message", (data) => {
-  console.log(data);
-
-  updateUserMarkers(data);
-
-
 });
