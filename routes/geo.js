@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const geolib = require('geolib');
 const mysql = require('mysql2');
+const axios=require("axios")
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -13,43 +14,55 @@ const db = mysql.createConnection({
 
 router.post('/data', async (req, res) => {
     try {
-        const geofence = { latitude: 19.07448, longitude: 72.8812877, radius: 500 };
         const userLocation = req.body;
+        const userId = req.user.id;
 
-        const distance = geolib.getDistance(
-            { latitude: userLocation.latitude, longitude: userLocation.longitude },
-            { latitude: geofence.latitude, longitude: geofence.longitude }
-        );
+        // Fetch geofences
+        const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
+        const geofences = response.data;
 
-        const userId = req.user.id;  
+        // Find the closest geofence
+        let closestGeofence = null;
+        let minDistance = Infinity;
+
+        geofences.forEach(geofence => {
+            const distance = geolib.getDistance(
+                { latitude: userLocation.latitude, longitude: userLocation.longitude },
+                { latitude: geofence.latitude, longitude: geofence.longitude }
+            );
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestGeofence = geofence;
+            }
+        });
+
+        if (!closestGeofence) {
+            return res.status(404).json({ message: 'No geofence found' });
+        }
+
         const t = new Date();
         const currentHour = t.getHours();
-
-        const startHour = 9; 
-        const endHour = 17; 
-        let acc;
+        const startHour = 9;
+        const endHour = 17;
 
         const ad = new Date();
         const indiaTime = new Date(ad.getTime() + (330 * 60000));
         const year = indiaTime.getFullYear();
-        const month = indiaTime.getMonth() + 1; 
+        const month = indiaTime.getMonth() + 1;
         const day = indiaTime.getDate();
         const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        
+
         const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const seconds = now.getSeconds().toString().padStart(2, '0');
         const currentTime = `${hours}:${minutes}:${seconds}`;
 
-        if (currentHour >= startHour && currentHour < endHour) {
-            acc = "present";
-        } else {
-            acc = "absent";
-        }
+        let acc = (currentHour >= startHour && currentHour < endHour) ? "present" : "absent";
 
-        if (distance <= geofence.radius) {
-            console.log('Inside geofence');
+        if (minDistance <= closestGeofence.radius) {
+            console.log('Inside closest geofence');
             db.query('SELECT * FROM attendance WHERE userid = ? AND date = ?', [userId, ourdate], (err, results) => {
                 if (err) {
                     console.error('Error executing query:', err);
@@ -62,7 +75,7 @@ router.post('/data', async (req, res) => {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
                         }
-                        res.json({ message: 'Inside geofence, attendance recorded' });
+                        res.json({ message: 'Inside closest geofence, attendance recorded' });
                     });
                 } else {
                     db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
@@ -71,19 +84,19 @@ router.post('/data', async (req, res) => {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
                         }
-                        res.json({ message: 'Inside geofence, status updated' });
+                        res.json({ message: 'Inside closest geofence, status updated' });
                     });
                 }
             });
         } else {
-            console.log('Outside geofence');
+            console.log('Outside closest geofence');
             db.query('UPDATE attendance SET status = ?, signout_time = ? WHERE userid = ? AND date = ?', 
             ['offline', currentTime, userId, ourdate], (err, results) => {
                 if (err) {
                     console.error('Error executing query:', err);
                     return res.status(500).json({ message: 'Server error' });
                 }
-                res.json({ message: 'Outside geofence, status updated' });
+                res.json({ message: 'Outside closest geofence, status updated' });
             });
         }
     } catch (error) {
@@ -91,5 +104,4 @@ router.post('/data', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-
 module.exports = router;

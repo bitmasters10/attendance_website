@@ -53,6 +53,7 @@ io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
 app.use('/admin', require('./routes/admin'));
+app.use('/admin-o', require('./routes/admin-geo'));
 app.use('/geo', require('./routes/geo'));
 app.use(express.static('public'));
 
