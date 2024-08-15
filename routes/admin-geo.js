@@ -5,7 +5,7 @@ const MySQLStore = require('express-mysql-session')(session);
 const methodOverride = require('method-override');
 const mysql = require('mysql2');
 const { v4: uuidv4 } = require('uuid');
-
+const axios =require("axios")
 // Middleware setup
 Router.use(methodOverride('_method'));
 
@@ -64,7 +64,7 @@ db.query(query,[ide,latitude,longitude,radius,name],(err,results)=>{
         console.log(`error while inserting${err}`);
     }
     console.log(results);
-    res.send("hogya")
+    res.redirect("/admin-o/show/geofence")
 })
     }
     else{
@@ -97,7 +97,7 @@ Router.patch("/edit-geofence/:id", async (req, res) => {
     });
 });
 
-// DELETE route to delete a geofence
+
 Router.delete("/delete-geofence/:id", async (req, res) => {
     const { id } = req.params;
 
@@ -113,6 +113,9 @@ Router.delete("/delete-geofence/:id", async (req, res) => {
 Router.get("/show/geofence",async(req,res)=>{
     let geo = await axios.post("http://localhost:3000/admin-o/curr-geos");
     let fence=geo.data
-    res.render("allgeo",fence)
+    res.render("allgeo",{fence})
+})
+Router.get("/create/geo",(req,res)=>{
+    res.render("create-geo")
 })
 module.exports = Router;

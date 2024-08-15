@@ -1,4 +1,10 @@
 let userMarkers = {};
+let userMarker = null;
+let mylat = 0;
+let mylong = 0;
+const geofenceLat = 19.07448;
+const geofenceLng = 72.8812857;
+const geofenceRadius = 500;
 
 document.addEventListener('DOMContentLoaded', () => {
   const para = document.querySelector("p");
@@ -6,22 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize the map
   var map = L.map('map').setView([51.505, -0.09], 15);
-  let mylat = 0;
-  let mylong = 0;
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
-
-  let geofenceCircle = null;
-  let userMarker = null;
-  let isInsideGeofence = false;
-  let id = null;
-
-  const geofenceLat = 19.07448;
-  const geofenceLng = 72.8812857;
-  const geofenceRadius = 500;
- 
 
   // Initialize Socket.IO
   const socket = io();
@@ -67,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const isInsideGeofence = checkGeofenceStatus(userLocation);
 
       if (isInsideGeofence) {
-          console.log(`User ${id} entered the geofence at:`, new Date().toLocaleString());
+          console.log(`User ${id} entered the geofence at: ${new Date().toLocaleString()}`);
       } else {
-          console.log(`User ${id} left the geofence at:`, new Date().toLocaleString());
+          console.log(`User ${id} left the geofence at: ${new Date().toLocaleString()}`);
       }
   };
 
@@ -78,46 +72,37 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserMarkers(data);
   });
 
-  // Show geofence
-//   const showGeofenceCircle = () => {
-//       if (!geofenceCircle) {
-//           let ab= L.circle([geofenceLat, geofenceLng], {
-//               color: 'red',
-//               fillColor: '#f03',
-//               fillOpacity: 0.5,
-//               radius: geofenceRadius,
-//           }).addTo(map);
+  async function showAllFences() {
+    try {
+      const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
+      const geofences = response.data;
+      for (const fen of geofences) {
+          let circle = L.circle([fen.latitude, fen.longitude], {
+              color: '#FFA071',
+              fillColor: '#EBD1C5',
+              fillOpacity: 0.5,
+              radius: fen.radius,
+          }).bindPopup(`Office ${fen.name}`)
+          .openPopup().addTo(map);
 
-//           map.fitBounds(ab.getBounds());
-//       }
-//   };
-//   showGeofenceCircle();
-   async function showallfence(){
-   
-    const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
-    const geofences = response.data;
-    for (fen of geofences){
-        let ab= L.circle([fen.latitude, fen.longitude], {
-            color: '#FFA071',
-            fillColor: '#EBD1C5',
-            fillOpacity: 0.5,
-            radius: fen.radius,
-        }).bindPopup(`office${fen.name}`)
-        .openPopup().addTo(map);
-
-        map.fitBounds(ab.getBounds());
-
+          map.fitBounds(circle.getBounds());
+      }
+    } catch (error) {
+      console.error("Error fetching geofences:", error);
     }
-   }
-   showallfence()
+  }
+  showAllFences();
+
   // User permission
+  let locationInterval = null;
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
-          setInterval(() => {
+          if (locationInterval) clearInterval(locationInterval); // Clear existing interval if any
+          locationInterval = setInterval(() => {
               navigator.geolocation.getCurrentPosition(position => {
                   const { latitude, longitude } = position.coords;
                   if (latitude != mylat || longitude != mylong) {
-                      callapi(latitude, longitude);
+                      callApi(latitude, longitude);
                   }
               });
           }, 5000);
@@ -126,20 +111,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   });
 
-  function callapi(latitude, longitude) {
+  function callApi(latitude, longitude) {
       mylat = latitude;
       mylong = longitude;
       map.setView([latitude, longitude], 16);
-      marker.setLatLng([latitude, longitude]);
-      socket.emit("send-admin", { latitude, longitude,id });
-     
+
+      if (userMarker) {
+          userMarker.setLatLng([latitude, longitude]);
+      } else {
+          userMarker = L.marker([latitude, longitude]).addTo(map);
+      }
+
+      socket.emit("send-admin", { latitude, longitude, id });
+
       axios.post('/geo/data', { latitude, longitude })
           .then(response => {
-              para.innerHTML = "";
               para.innerHTML = `<p>${response.data.message}</p>`;
               console.log(response.data);
           })
-          .catch(error => console.error(error));
+          .catch(error => console.error("Error posting geolocation data:", error));
   }
 
   if (showGeofenceBtn) {
