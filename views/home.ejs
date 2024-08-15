@@ -12,13 +12,21 @@
     <style>
         body {
             box-sizing: border-box;
-            background-color: #ffffff;
+            background-color: #0d2952;
             margin: 0;
             padding: 0;
         }
         #map {
-            height: 100vh;
-            width: 100%;
+            height: 500px;
+            width: 600px;
+            margin-top: 4%;
+            margin-left: 8%;
+            box-shadow: 0px 0px 30px 0px #0129701A;
+
+            z-index: 1000;
+            /* position: relative; */
+            /* top: 20%; */
+            /* left: 20%; */
         }
         .btn-location {
             z-index: 1000;
@@ -41,20 +49,69 @@
        
         .info-box {
             position: absolute;
-            top: 20px;
-            left: 55%;
+            top: 22%;
+            right: 5%;
+            width: 240px;
+            height: 140px;
+            gap: 8px;
             transform: translateX(-50%);
             background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 0px 30px 0px #0129701A;
             padding: 10px;
             border-radius: 5px;
             z-index: 1000;
         }
+        .info-box1 {
+            position: absolute;
+            top: 50%;
+            right: 5%;
+            width: 240px;
+            height: 140px;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 0px 30px 0px #0129701A;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+      .con{
+        width: 100%;
+        padding: 0 0 0 60px ;
+        padding-top: 50px;
+        background-color: #EDF1F7;
+      }
+      h1{
+        color: #4154F1;
+        text-align: left; /* Align header to the left */
+        font-family: 'poppins';
+      }
+      .texxt{
+        text-align: center;
+        font-weight: 600;
+        font-family: 'poppins';
+
+        padding: 0px, 20px, 20px, 20px;
+        font-size: 1.2em;
+      column-gap: 200px;
+      color: #4154F1;
+      }
+    
+
+      .sp{
+        
+       font-weight: bold;
+       font-size: 1.8em;
+      }
     </style>
 </head>
 <body>
+    
     <% if(admin){ %>
     <%- include('partials/sidebar') %>
 <% } %>
+<div class="con">
+    <h1>Map</h1>
+    
     <div id="map"></div>
     
     <% if (!admin) { %>
@@ -71,10 +128,13 @@
       
     <% }else{ %>
     <div class="info-box">
-        <p>Current Users Online: <%= onlineUsers %></p>
-        <p>Current Users Offline: <%= offlineUsers %></p>
+        <p class="texxt">Current Users Online: <br> <br><span class="sp"> <%= onlineUsers %> </span></p>
+    </div>
+    <div class="info-box1">
+        <p class="texxt">Current Users Offline: <br><br><span class="sp"> <%= offlineUsers %> </span></p>
     </div>
     <% } %>
+</div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
