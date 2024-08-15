@@ -9,9 +9,9 @@ const axios = require('axios');
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: "",
-    database: "sql12718865",
-    port: process.env.DB_PORT
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT 
 });
 
 

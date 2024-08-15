@@ -11,12 +11,10 @@ Router.use(methodOverride('_method'));
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: "",
-    database: "sql12718865",
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     port: process.env.DB_PORT 
-   
 });
-
 const sessionStore = new MySQLStore({}, db.promise());
 
 // Middleware to check if user is admin
@@ -156,7 +154,7 @@ Router.get('/calendar', isAdmin, (req, res) => {
 // Route to fetch calendar data
 Router.post('/calendar/:data', isAdmin, (req, res) => {
     const { data } = req.params;
-    const query = 'SELECT u.*, a.accounted_for FROM users u JOIN attendance a ON u.id = a.userid WHERE a.date = ?';
+    const query = 'SELECT u.*, a.accounted_for,a.signin_time,a.signout_time FROM users u JOIN attendance a ON u.id = a.userid WHERE a.date = ?';
     db.query(query, [data], (err, results) => {
         if (err) {
             console.error('Error fetching calendar data:', err);

@@ -13,10 +13,9 @@ Router.use(methodOverride('_method'));
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: "",
-    database: "sql12718865",
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     port: process.env.DB_PORT 
-   
 });
 
 const sessionStore = new MySQLStore({}, db.promise());
