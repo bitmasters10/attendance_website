@@ -121,7 +121,7 @@
     <%- include('partials/sidebar') %>
     <div class="over">
         <div class="table-container">
-            <h1 style="color: #4154F1;">geo Management</h1>
+            <h1 style="color: #4154F1;">Location Management</h1>
             <p>Manage</p>
             <div class="cont">
                 <h2>Manage</h2>
@@ -132,9 +132,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Username</th>
-                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Radius</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -146,7 +147,14 @@
                             <td><%= f.latitude %></td>
                             <td><%= f.longitude %></td>
                             <td><%= f.radius %></td>
-                            <td><a href="/admin-o/edit/geo/<%= f.id %>">edit</a></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/admin-o/edit/geo/<%= f.geoid %>" class="btn btn-primary"><i class="fa fa-edit"></i></a>
+                                    <form action="http://localhost:3000/admin-o/delete-geofence/<%= f.geoid %>?_method=DELETE" method="post">
+                                        <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
                            
                         </tr>
                     
@@ -166,7 +174,7 @@
             tr = table.getElementsByTagName("tr");
 
             for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[1]; // Search by name (second column)
+                td = tr[i].getElementsByTagName("td")[0]; // Search by name (second column)
                 if (td) {
                     txtValue = td.textContent || td.innerText;
                     if (txtValue.toUpperCase().indexOf(filter) > -1) {

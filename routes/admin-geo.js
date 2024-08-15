@@ -6,6 +6,7 @@ const methodOverride = require('method-override');
 const mysql = require('mysql2');
 const { v4: uuidv4 } = require('uuid');
 const axios =require("axios")
+
 // Middleware setup
 Router.use(methodOverride('_method'));
 
@@ -83,50 +84,63 @@ Router.post("/curr-geos",async(req,res)=>{
         res.send(rows).status(200)
     })
 })
-Router.patch("/edit-geofence/:id", async (req, res) => {
+Router.patch("/edit-geofence/:geoid",  (req, res) => {
     const { latitude, longitude, radius, name } = req.body;
-    const { id } = req.params;
+    const { geoid } = req.params;
 
     const query = `UPDATE geofence SET latitude = ?, longitude = ?, radius = ?, name = ? WHERE geoid = ?`;
-    db.query(query, [latitude, longitude, radius, name, id], (err, results) => {
+    db.query(query, [latitude, longitude, radius, name, geoid], (err, results) => {
         if (err) {
             console.error(`Error while updating: ${err}`);
             return res.status(500).send("An error occurred while updating the geofence.");
         }
-        res.redirect('/admin/geo');
+        res.redirect('/admin-o/show/geofence');
     });
 });
 
 
-Router.delete("/delete-geofence/:id", async (req, res) => {
-    const { id } = req.params;
+Router.delete("/delete-geofence/:geoid", async (req, res) => {
+    const { geoid } = req.params;
 
     const query = `DELETE FROM geofence WHERE geoid = ?`;
-    db.query(query, [id], (err, results) => {
+    db.query(query, [geoid], (err, results) => {
         if (err) {
             console.error(`Error while deleting: ${err}`);
             return res.status(500).send("An error occurred while deleting the geofence.");
         }
-        res.redirect('/admin/geo');
+        res.redirect('/admin-o/show/geofence');
     });
 });
+
+
+
+
 Router.get("/show/geofence",async(req,res)=>{
     let geo = await axios.post("http://localhost:3000/admin-o/curr-geos");
     let fence=geo.data
     res.render("allgeo",{fence})
 })
+
+
+
+
 Router.get("/create/geo",(req,res)=>{
     res.render("create-geo")
 })
-Router.get("/edit/geo/:id",(req,res)=>{
-    const { id } = req.params;
-    const query = "SELECT * FROM geofence WHERE id = ?;";
-    db.query(query, [id], (err, results) => {
+
+
+
+
+Router.get("/edit/geo/:geoid",(req,res)=>{
+    const { geoid } = req.params;
+    const query = "SELECT * FROM geofence WHERE geoid = ?;";
+    db.query(query, [geoid], (err, results) => {
         if (err) {
             console.error('Error fetching user:', err);
             res.status(500).send('Server Error');
             return;
-        }})
-    res.render("edit-geo",{ user: results[0] })
-})
+        }
+         res.render("edit-geo",{ user: results[0] });
+        });
+});
 module.exports = Router;

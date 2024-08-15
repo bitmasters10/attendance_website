@@ -147,7 +147,7 @@ app.get('/home', isAuthenticated, (req, res) => {
     const admin = req.user.type === 'admin';
     const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
     const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'offline'";
-
+    const totalFenceQuery = "SELECT COUNT(DISTINCT geoid) as count FROM geofence"
     try {
         db.query(onlineUsersQuery, (err, onlineUsersResults) => {
             if (err) {
@@ -159,13 +159,24 @@ app.get('/home', isAuthenticated, (req, res) => {
 
             db.query(offlineUsersQuery, (err, offUsersResults) => {
                 if (err) {
-                    console.error('Error fetching offline users:', err);
+                    console.error('Error fetching online users:', err);
                     res.status(500).send('Server Error');
                     return;
                 }
                 const offlineUsers = offUsersResults[0].count;
+                db.query(totalFenceQuery, (err, totalFenceResults) => {
+                    if (err) {
+                        console.error('Error fetching online users:', err);
+                        res.status(500).send('Server Error');
+                        return;
+                    }
+                    const totalFence = totalFenceResults[0].count;
 
-                res.render('home', { admin, offlineUsers, onlineUsers });
+console.log(totalFence)
+
+                res.render('home', { admin, offlineUsers, onlineUsers, totalFence });
+            });
+
             });
         });
     } catch (error) {
@@ -173,7 +184,6 @@ app.get('/home', isAuthenticated, (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
