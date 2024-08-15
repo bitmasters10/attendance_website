@@ -302,26 +302,23 @@ process.on('SIGINT', () => {
 });
 
 app.get('/users', (req, res) => {
-    const q = "SELECT * FROM attendance;";
-    const ad = new Date();
-    const indiaTime = new Date(ad.getTime() + (330 * 60000));
-    const year = indiaTime.getFullYear();
-    const month = indiaTime.getMonth() + 1;
-    const day = indiaTime.getDate();
-    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    console.log(formattedDate);
+ let d= new Date()
+ let a=d.getHours()
+console.log(d);
+console.log(a);
 
-    try {
-        db.query(q, (err, results) => {
-            if (err) {
-                res.send("Error: " + err);
-            }
-            res.json(results);
-        });
-    } catch (error) {
-        console.error('Unexpected error:', error);
-        res.status(500).send('Server Error');
-    }
+
+const startHour = 9;
+const endHour = 18;
+
+
+
+
+
+
+let acc = (a >= startHour && a < endHour) ? "present" : "absent";
+
+
 });
 
 const port = 3000;

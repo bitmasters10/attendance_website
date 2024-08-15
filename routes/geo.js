@@ -57,7 +57,21 @@ router.post('/data', async (req, res) => {
         const seconds = now.getSeconds().toString().padStart(2, '0');
         const currentTime = `${hours}:${minutes}:${seconds}`;
 
-        let acc = (currentHour >= startHour && currentHour < endHour) ? "present" : "absent";
+        let d= new Date()
+        let a=d.getHours()
+       console.log(d);
+       console.log(a);
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       let acc = (a >= startHour && a < endHour) ? "present" : "absent";
+       console.log(acc);
 
         if (minDistance <= closestGeofence.radius) {
             console.log('Inside closest geofence');
@@ -67,8 +81,8 @@ router.post('/data', async (req, res) => {
                     return res.status(500).json({ message: 'Server error' });
                 }
                 if (results.length === 0) {
-                    db.query('INSERT INTO attendance (userid, status, date, signin_time, accounted_for) VALUES (?, ?, ?, ?, ?)', 
-                    [userId, 'online', ourdate, currentTime, acc], (err, results) => {
+                    db.query('INSERT INTO attendance (userid, status, date, signin_time, accounted_for,curr_loc) VALUES (?, ?, ?, ?, ?,?)', 
+                    [userId, 'online', ourdate, currentTime, acc,closestGeofence.name], (err, results) => {
                         if (err) {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
@@ -76,8 +90,8 @@ router.post('/data', async (req, res) => {
                         res.json({ message: 'Inside closest geofence, attendance recorded' });
                     });
                 } else {
-                    db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
-                    ['online', userId, ourdate], (err, results) => {
+                    db.query('UPDATE attendance SET status = ?, signout_time = NULL curr_loc = ?  WHERE userid = ? AND date = ?', 
+                    ['online',closestGeofence.name, userId, ourdate], (err, results) => {
                         if (err) {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
