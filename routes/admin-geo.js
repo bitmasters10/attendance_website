@@ -83,5 +83,36 @@ Router.post("/curr-geos",async(req,res)=>{
         res.send(rows).status(200)
     })
 })
-Router.patch("/")
+Router.patch("/edit-geofence/:id", async (req, res) => {
+    const { latitude, longitude, radius, name } = req.body;
+    const { id } = req.params;
+
+    const query = `UPDATE geofence SET latitude = ?, longitude = ?, radius = ?, name = ? WHERE geoid = ?`;
+    db.query(query, [latitude, longitude, radius, name, id], (err, results) => {
+        if (err) {
+            console.error(`Error while updating: ${err}`);
+            return res.status(500).send("An error occurred while updating the geofence.");
+        }
+        res.redirect('/admin/geo');
+    });
+});
+
+// DELETE route to delete a geofence
+Router.delete("/delete-geofence/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const query = `DELETE FROM geofence WHERE geoid = ?`;
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error(`Error while deleting: ${err}`);
+            return res.status(500).send("An error occurred while deleting the geofence.");
+        }
+        res.redirect('/admin/geo');
+    });
+});
+Router.get("/show/geofence",async(req,res)=>{
+    let geo = await axios.post("http://localhost:3000/admin-o/curr-geos");
+    let fence=geo.data
+    res.render("allgeo",fence)
+})
 module.exports = Router;
