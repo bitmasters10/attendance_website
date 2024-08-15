@@ -15,8 +15,8 @@
         #sidebar {
             min-width: 250px;
             max-width: 250px;
-            background: #343a40;
-            color: #fff;
+            background: #ffffff;
+            color: #000000;
             transition: all 0.3s;
         }
         #sidebar.active {
@@ -24,34 +24,44 @@
         }
         #sidebar .sidebar-header {
             padding: 20px;
-            background: #4e555b;
+            background: #ffffff;
         }
         #sidebar .list-group-item {
             background: none;
+          
             border: none;
-            color: #fff;
+           margin: 0 9px 0 9px;
+           border-radius: 10px;
+            color: #000000;
+        }
+        #sidebar .list-group-item1{
+            margin: 10px 0 0 0;
+        }
+        #sidebar .list-group-item a{
+            text-decoration: none;
         }
         #sidebar .list-group-item:hover {
-            background: #495057;
+            
+            background: #EDF1F7;
         }
         #sidebar .dropdown-menu {
-            background: #343a40;
+            background: #ffffff;
             border: none;
         }
         #sidebar .dropdown-item {
-            color: #fff;
+            color: #020202;
         }
         #sidebar .dropdown-item:hover {
-            background: #495057;
+            background: #ffffff;
         }
         #content {
             flex: 1;
-            padding: 20px;
+            padding: 10px;
             overflow: auto;
         }
         .navbar {
-            background: #343a40;
-            color: #fff;
+            background: #ffffff;
+            color: #000000;
         }
        
             .logo{
@@ -60,37 +70,37 @@
             bottom: 10%;
             left:2.5%; 
         }
-        
+
     </style>
 </head>
 <body>
 
-    <div id="sidebar" class="bg-dark">
+    <div id="sidebar" class="bg-white">
         <div class="sidebar-header text-center py-4">
-            <h3>Attendance System</h3>
+            <h3>GAle</h3>
         </div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item"><a href="/admin/dashboard" class="text-white">Dashboard</a></li>
-            <li class="list-group-item"><a href="/admin/geo" class="text-white">Map</a></li>
-            <li class="list-group-item"><a href="/admin/calendar" class="text-white">Calendar</a></li>
+        <ul class="list-group list-group-flush ">
+            <li class="list-group-item"><a href="/admin/dashboard" class="text-#012970 font-semibold ">Dashboard</a></li>
+            <li class="list-group-item"><a href="/admin/geo" class="text-#012970 font-semibold ">Map</a></li>
+            <li class="list-group-item"><a href="/admin/calendar" class="text-#012970 font-semibold ">Calendar</a></li>
             <!-- <li class="list-group-item"><a href="#" class="text-white">Clients</a></li> -->
             <li class="list-group-item">
-                <a href="#userSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">User Management</a>
+                <a href="#userSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-#012970 font-semibold">User Management</a>
                 <ul class="collapse list-unstyled" id="userSubmenu">
-                    <li class="list-group-item">
-                        <a href="/admin/users" class="text-white">Users</a>
+                    <li class="list-group-item1">
+                        <a href="/admin/users" class="text-#012970 m-0 p-0 font-semibold">Users</a>
                     </li>
                 </ul>
             </li>
             <li class="list-group-item">
-                <a href="#userSubmenuu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white">Settings</a>
+                <a href="#userSubmenuu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-#012970 font-semibold">Settings</a>
                 <ul class="collapse list-unstyled" id="userSubmenuu">
                     
-                    <li >
+                    <li class="list-group-item1 text-#012970">
 
                         <form action="/logout" method="post">
 
-                            <button type="submit" class="btn btn-danger">Logout</button>
+                            <button type="submit" class="text-#012970 m-0 p-0 font-semibold">Logout</button>
                         </form>
                        
                     </li>
