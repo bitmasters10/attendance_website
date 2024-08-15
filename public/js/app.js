@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const geofenceLat = 19.07448;
   const geofenceLng = 72.8812857;
   const geofenceRadius = 500;
-  const marker = L.marker([51.505, -0.09]).addTo(map);
+ 
 
   // Initialize Socket.IO
   const socket = io();
@@ -79,20 +79,37 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Show geofence
-  const showGeofenceCircle = () => {
-      if (!geofenceCircle) {
-          geofenceCircle = L.circle([geofenceLat, geofenceLng], {
-              color: 'red',
-              fillColor: '#f03',
-              fillOpacity: 0.5,
-              radius: geofenceRadius,
-          }).addTo(map);
+//   const showGeofenceCircle = () => {
+//       if (!geofenceCircle) {
+//           let ab= L.circle([geofenceLat, geofenceLng], {
+//               color: 'red',
+//               fillColor: '#f03',
+//               fillOpacity: 0.5,
+//               radius: geofenceRadius,
+//           }).addTo(map);
 
-          map.fitBounds(geofenceCircle.getBounds());
-      }
-  };
-  showGeofenceCircle();
+//           map.fitBounds(ab.getBounds());
+//       }
+//   };
+//   showGeofenceCircle();
+   async function showallfence(){
+   
+    const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
+    const geofences = response.data;
+    for (fen of geofences){
+        let ab= L.circle([fen.latitude, fen.longitude], {
+            color: '#FFA071',
+            fillColor: '#EBD1C5',
+            fillOpacity: 0.5,
+            radius: fen.radius,
+        }).bindPopup(`office${fen.name}`)
+        .openPopup().addTo(map);
 
+        map.fitBounds(ab.getBounds());
+
+    }
+   }
+   showallfence()
   // User permission
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
