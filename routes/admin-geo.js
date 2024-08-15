@@ -118,4 +118,15 @@ Router.get("/show/geofence",async(req,res)=>{
 Router.get("/create/geo",(req,res)=>{
     res.render("create-geo")
 })
+Router.get("/edit/geo/:id",(req,res)=>{
+    const { id } = req.params;
+    const query = "SELECT * FROM geofence WHERE id = ?;";
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error('Error fetching user:', err);
+            res.status(500).send('Server Error');
+            return;
+        }})
+    res.render("edit-geo",{ user: results[0] })
+})
 module.exports = Router;
