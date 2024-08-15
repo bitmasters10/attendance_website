@@ -51,7 +51,7 @@ font-family: 'Work Sans', sans-serif;
     content: '';
     height: 3px;
     width: 0;
-    background: #FFAAAA;
+    background: #4154F1;
     position: absolute;
     left: 0;
     bottom: -10px;
@@ -86,7 +86,7 @@ font-family: 'Work Sans', sans-serif;
     margin: 20px 10px;
     border-radius: 25px;
     font-weight: bold;
-    border: 2px solid #FFAAAA;
+    border: 2px solid #4154F1;
     background: transparent;
     color: white;
     cursor: pointer;
@@ -94,7 +94,7 @@ font-family: 'Work Sans', sans-serif;
     overflow: hidden;
 }
 span{
-    background-color: #FFAAAA;
+    background-color: #4154F1;
     height: 100%;
     width: 0;
     border-radius: 25px;
@@ -112,39 +112,5 @@ span{
 .first:hover{
     border: none;
 }
-.top-border{
-  background : linear-gradient(90deg,#ef4444,#f97316,#f59e0b,#eab308,#84cc16,#22c55e,#06b6d4,#8b5cf6,#c026d3);
-  background-size:  400%;
- 
-  animation: animate 25s ease infinite;
-}
 
-.top-border::before, .top-border::after {
-    background : linear-gradient(90deg,#ef4444,#f97316,#f59e0b,#eab308,#84cc16,#22c55e,#06b6d4,#8b5cf6,#c026d3);
-    background-size:  400%;
-   
-    animation: animate 20s ease infinite;
-   
-
-}
-.w-full {
-    width: 100%;
-}
-.h-1 {
-    height: 0.25rem;
-}
-.z-20 {
-    z-index: 20;
-}
-.top-0 {
-    top: 0;
-}
-.fixed {
-    position: fixed;
-}
-@keyframes animate {
-    0%   {background-position: 0 0;}
-    50%  {background-position: 400% 0;}
-    100% {background-position: 0 0;}
-  }
   
