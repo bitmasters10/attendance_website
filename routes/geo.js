@@ -90,8 +90,8 @@ router.post('/data', async (req, res) => {
                         res.json({ message: 'Inside closest geofence, attendance recorded' });
                     });
                 } else {
-                    db.query('UPDATE attendance SET status = ?, signout_time = NULL curr_loc = ?  WHERE userid = ? AND date = ?', 
-                    ['online',closestGeofence.name, userId, ourdate], (err, results) => {
+                    db.query('UPDATE attendance SET status = ?, signout_time = NULL   WHERE userid = ? AND date = ?', 
+                    ['online', userId, ourdate], (err, results) => {
                         if (err) {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
