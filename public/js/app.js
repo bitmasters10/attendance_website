@@ -78,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserMarkers(data);
   });
 
+
+
+  
   // Show geofence
   const showGeofenceCircle = () => {
       if (!geofenceCircle) {
@@ -93,6 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   showGeofenceCircle();
 
+
+
+
+  
   // User permission
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
@@ -108,6 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('Old browser. Please use a newer one.');
       }
   });
+
+  const checkGeofenceStatus = (userLocation) => {
+    const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
+    return distance <= geofenceRadius;
+};
+
 
   function callapi(latitude, longitude) {
       mylat = latitude;
@@ -131,10 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  const checkGeofenceStatus = (userLocation) => {
-      const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
-      return distance <= geofenceRadius;
-  };
+  
 
   function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
       const R = 6371;

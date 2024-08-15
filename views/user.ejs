@@ -16,14 +16,16 @@
     <style>
         body {
             box-sizing: border-box;
-            background-color: #ffffff;
+            background-color: #F6F9FF;
             margin: 0;
             padding: 0;
         }
         .over {
             overflow-y: scroll;
             width: 100%;
-            padding: 20px; /* Add padding for spacing */
+            padding: 30px; /* Add padding for spacing */
+            background-color: #EDF1F7;
+
         }
         .table-container {
             padding: 20px;
@@ -31,12 +33,12 @@
         }
         h1 {
             text-align: left; /* Align header to the left */
-            margin-bottom: 20px; /* Add margin below header */
+            font-family: 'poppins';
         }
         .search-container {
             display: flex;
             justify-content: flex-start; /* Align search to the left */
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
         .search-container input[type=text] {
             padding: 10px;
@@ -44,7 +46,7 @@
             border: none; /* Remove border */
             border-radius: 4px;
             font-size: 14px;
-            width: calc(100% - 120px);
+            width: calc(100% - 80px);
             background-color: #f2f2f2; /* Light grey background color */
         }
         .search-container button {
@@ -58,18 +60,21 @@
         }
         table {
             width: 100%;
-            border-collapse: collapse;
+           
+            border: none;
             margin-top: 10px; /* Adjusted margin top */
-            border: 1px solid #ccc; /* Add border */
+            
         }
         th, td {
-            border: 1px solid #ccc; /* Add border to table cells */
+            
             padding: 10px;
             text-align: left;
         }
         th {
-            background-color: #495057; /* Dark grey background color */
-            color: white; /* White text color */
+            border-bottom: inset;
+            border-color: rgba(217, 217, 217, 0.406);
+            background-color: #EDF1F7; /* Dark grey background color */
+            color: rgb(0, 0, 0); /* White text color */
         }
         .action-buttons {
             display: flex;
@@ -91,13 +96,34 @@
         .action-buttons form button {
             color: #dc3545; /* Red for delete */
         }
+        p{
+            font-size: 1.2em;
+            margin-left: 3px;
+            /* font-weight: bold; */
+            margin-bottom: 5px; /* Add margin below header */
+        }
+        .cont{
+         background-color: white;  
+         padding:60px 40px 30px 40px; /*top, right, bottom, and left*/
+        border-radius: 12px;
+        }
+      h2{
+        font-family: 'poppins';
+        font-weight: bold;
+      }
+      .create{
+        margin-top: 15px;
+      }
     </style>
 </head>
 <body>
     <%- include('partials/sidebar') %>
     <div class="over">
         <div class="table-container">
-            <h1>User List</h1>
+            <h1 style="color: #4154F1;">User Management</h1>
+            <p>Manage</p>
+            <div class="cont">
+                <h2>Manage</h2>
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="Search by name...">
                 <button type="button" onclick="searchTable()">Search</button>
@@ -105,7 +131,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Username</th>
                         <th>Email</th>
                         <th>Actions</th>
@@ -129,7 +155,8 @@
                     <% } %>
                 </tbody>
             </table>
-            <a class="btn btn-primary" href="/admin/users/create">Create</a>
+            <a class="btn btn-primary create" href="/admin/users/create">Create</a>
+        </div>
         </div>
     </div>
     <script>
