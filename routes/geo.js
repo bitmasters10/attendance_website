@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const geolib = require('geolib');
 const mysql = require('mysql2');
-const axios=require("axios")
+const axios = require('axios');
+
+// Set up MySQL connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: "",
     database: "sql12718865",
-    port: process.env.DB_PORT 
-   
+    port: process.env.DB_PORT
 });
 
 router.post('/data', async (req, res) => {
@@ -41,19 +42,16 @@ router.post('/data', async (req, res) => {
             return res.status(404).json({ message: 'No geofence found' });
         }
 
-        const t = new Date();
-        const currentHour = t.getHours();
+        const now = new Date();
+        const currentHour = now.getHours();
         const startHour = 9;
         const endHour = 17;
 
-        const ad = new Date();
-        const indiaTime = new Date(ad.getTime() + (330 * 60000));
-        const year = indiaTime.getFullYear();
-        const month = indiaTime.getMonth() + 1;
-        const day = indiaTime.getDate();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
         const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
-        const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const seconds = now.getSeconds().toString().padStart(2, '0');
@@ -104,4 +102,5 @@ router.post('/data', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 module.exports = router;

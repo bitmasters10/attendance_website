@@ -21,11 +21,8 @@ const db = mysql.createConnection({
     password: "",
     database: "sql12718865",
     port: process.env.DB_PORT 
-   
 });
 
-
-// Predefined admin credentials
 const adminEmail = process.env.ADMIN_EMAIL;
 const adminPassword = process.env.ADMIN_PASS;
 const server = createServer(app);
@@ -162,7 +159,7 @@ app.get('/home', isAuthenticated, (req, res) => {
 
             db.query(offlineUsersQuery, (err, offUsersResults) => {
                 if (err) {
-                    console.error('Error fetching online users:', err);
+                    console.error('Error fetching offline users:', err);
                     res.status(500).send('Server Error');
                     return;
                 }
@@ -176,6 +173,7 @@ app.get('/home', isAuthenticated, (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
@@ -197,11 +195,10 @@ async function idmake(table, column) {
     });
 }
 
-  
 app.post('/signup', async (req, res) => {
-    let ide= await idmake("users","id")
-console.log(ide);
-    const { username, eid, email, password } = req.body;
+    let ide = await idmake("users", "id");
+    console.log(ide);
+    const { username, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)';
@@ -247,14 +244,40 @@ app.post('/admin-login', passport.authenticate('admin-local', {
     failureRedirect: '/admin/login'
 }));
 
-app.post('/logout', (req, res) => {
-    req.logout((err) => {
+app.post('/logout', async (req, res) => {
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+
+    if (!userId) {
+        return res.status(401).send('User not authenticated');
+    }
+
+    // Get current date and time
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}:${seconds}`;
+    
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    // Update attendance record to mark user as offline and set signout time
+    db.query('UPDATE attendance SET status = ?, signout_time = ? WHERE userid = ? AND date = ?', 
+    ['offline', currentTime, userId, ourdate], (err, results) => {
         if (err) {
-            console.error('Error logging out:', err);
-            res.status(500).send('Server Error');
-            return;
+            console.error('Error updating attendance:', err);
+            return res.status(500).send('Server Error');
         }
-        res.redirect('/');
+
+        req.logout((err) => {
+            if (err) {
+                console.error('Error logging out:', err);
+                return res.status(500).send('Server Error');
+            }
+            res.redirect('/');
+        });
     });
 });
 
@@ -269,7 +292,6 @@ process.on('SIGINT', () => {
 });
 
 app.get('/users', (req, res) => {
-    
     const q = "SELECT * FROM attendance;";
     const ad = new Date();
     const indiaTime = new Date(ad.getTime() + (330 * 60000));
@@ -292,11 +314,8 @@ app.get('/users', (req, res) => {
     }
 });
 
-
-
 const port = 3000;
 io.use((socket, next) => {
-    // Middleware to access session from socket
     const session = socket.request.session;
     if (session && session.passport && session.passport.user) {
         next();
@@ -304,7 +323,6 @@ io.use((socket, next) => {
         next(new Error("Not authenticated"));
     }
 });
-
 
 const customIdSocketMap = new Map();
 
