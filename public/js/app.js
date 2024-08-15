@@ -17,6 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
+
+  const userIcon = L.Icon.extend({
+    options: {
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // URL to the Leaflet default icon or your custom icon
+        iconSize: [25, 41], // size of the icon
+        iconAnchor: [12, 41], // point of the icon which will correspond to marker's location
+        popupAnchor: [1, -34], // point from which the popup should open relative to the iconAnchor
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png', // optional shadow
+        shadowSize: [41, 41] // size of the shadow
+    }
+});
   // Initialize Socket.IO
   const socket = io();
 
@@ -42,6 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Received custom ID:", customId);
   });
 
+  const checkGeofenceStatus = (userLocation) => {
+    const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
+    return distance <= geofenceRadius;
+};
   // Define updateUserMarkers before its usage
   const updateUserMarkers = (data) => {
       const { id, latitude, longitude } = data;
@@ -50,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!userMarkers[id]) {
           // Create a new marker if it doesn't exist
-          userMarkers[id] = L.marker(userLocation).addTo(map)
+          userMarkers[id] = L.marker(userLocation, { icon: new userIcon() }).addTo(map)
               .bindPopup(`User ${id} is here.`)
               .openPopup();
       } else {
@@ -138,10 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  const checkGeofenceStatus = (userLocation) => {
-      const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
-      return distance <= geofenceRadius;
-  };
 
   function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
       const R = 6371;
