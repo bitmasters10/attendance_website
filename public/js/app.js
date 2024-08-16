@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             geofences.forEach(fen => {
                 let daba = L.circle([fen.latitude, fen.longitude], {
-                    color: '#000000',
-                    fillColor: '#DAF7A6',
+                    color: ' #2E8B57',
+                    fillColor: '#98FB9850',
                     fillOpacity: 0.5,
                     radius: fen.radius,
                 }).bindPopup(`Office ${fen.name}`)

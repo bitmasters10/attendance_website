@@ -155,7 +155,7 @@ Router.post("/admin/requests/:id/accept", async (req, res) => {
                     let insertQuery = `
                         INSERT INTO temgeo (tempid, latitude, longitude, radius, name, date) VALUES (?, ?, ?, ?, ?, ?)
                     `;
-                    db.query(insertQuery, [ide, temp.latitude, temp.longitude,100, ide, temp.date], (err, rows) => {
+                    db.query(insertQuery, [ide, temp.latitude, temp.longitude,200, ide, temp.date], (err, rows) => {
                         if (err) {
                             console.log("Error while inserting into temgeo:", err);
                             res.sendStatus(500);
