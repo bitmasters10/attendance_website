@@ -237,21 +237,20 @@ app.post('/login', (req, res, next) => {
         }
         if (!user) {
             console.log('Authentication failed:', info.message);
-            return res.redirect('/login');
+            return res.status(401).json({ message: 'Authentication failed', reason: info.message });
         }
         req.logIn(user, (err) => {
             if (err) {
                 console.error('Login error:', err);
                 return next(err);
             }
-           
-            console.log('Authentication successful, redirecting to home');
-            res.json(user);
-            return res.redirect('/home');
             
+            console.log('Authentication successful');
+            return res.json({ message: 'Authentication successful', user });
         });
     })(req, res, next);
 });
+
 
 app.post('/admin-login', passport.authenticate('admin-local', {
     successRedirect: '/admin/dashboard',
