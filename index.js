@@ -243,8 +243,11 @@ app.post('/login', (req, res, next) => {
                 console.error('Login error:', err);
                 return next(err);
             }
+           
             console.log('Authentication successful, redirecting to home');
+            res.json(user);
             return res.redirect('/home');
+            
         });
     })(req, res, next);
 });

@@ -18,9 +18,10 @@ const db = mysql.createConnection({
 
 router.post('/data', async (req, res) => {
     try {
+       
         const userLocation = req.body;
         const userId = req.user.id;
-
+        
         // Fetch geofences
         const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
         const geofences = response.data;
