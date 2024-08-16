@@ -51,6 +51,7 @@ io.use((socket, next) => {
 });
 app.use('/admin', require('./routes/admin'));
 app.use('/admin-o', require('./routes/admin-geo'));
+app.use('/user', require('./routes/manual'));
 app.use('/geo', require('./routes/geo'));
 
 app.use(express.static('public'));
@@ -320,7 +321,9 @@ const endHour = 18;
 
 
 let acc = (a >= startHour && a < endHour) ? "present" : "absent";
-
+db.query("select * from request",(err,rows)=>{
+    console.log(rows);
+})
 
 });
 
