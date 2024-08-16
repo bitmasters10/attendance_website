@@ -108,14 +108,31 @@ router.post('/data', async (req, res) => {
                         res.json({ message: 'Inside closest geofence, attendance recorded' });
                     });
                 } else {
-                    db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
-                    ['online', userId, ourdate], (err, results) => {
+                    //start - Checking if the user has already checked out twice
+                    const doubleQuery = "SELECT COUNT(*) AS count FROM attendance WHERE date = ? AND userid = ? AND status = ?";
+                    db.query(doubleQuery, [ourdate, userId, "offline"], (err, rows) => {
                         if (err) {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
                         }
-                        res.json({ message: 'Inside closest geofence, status updated' });
+                        
+                        const count = rows[0].count;
+                        
+                        if (count < 2) {
+                            // If the user has not checked out more than twice, update the status to 'online'
+                            db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
+                                ['online', userId, ourdate], (err, results) => {
+                                if (err) {
+                                    console.error('Error executing query:', err);
+                                    return res.status(500).json({ message: 'Server error' });
+                                }
+                                res.json({ message: 'Inside closest geofence, status updated' });
+                            });
+                        } else {
+                            res.status(400).json({ message: 'Maximum check-ins/check-outs exceeded for today' });
+                        }
                     });
+                    //end
                 }
             });
         } else {
