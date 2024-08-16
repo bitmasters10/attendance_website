@@ -214,4 +214,21 @@ Router.post("/history",(req,res)=>{
         }}
     })
 })
+Router.post("/history/req",(req,res)=>{
+    const {id}=req.user.id;
+    db.query("select * from request where userid=?",[id],(err,rows)=>{
+        if(err){
+            res.send("error while fetching history ples try later").status(404)
+        }
+        else{
+        if(rows.length===0){
+            res.send("error while fetching history ples try later").status(404)
+        }
+        else{
+            console.log(rows);
+            res.send(rows).status(200)
+
+        }}
+    })
+})
 module.exports = Router;
