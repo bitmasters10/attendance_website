@@ -18,7 +18,7 @@ const db = mysql.createConnection({
 
 router.post('/data', async (req, res) => {
     try {
-       
+       console.log(req.body)
         const userLocation = req.body;
         const userId = req.user.id;
         

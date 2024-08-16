@@ -146,6 +146,7 @@ app.get('/login', (req, res) => {
 
 app.get('/home', isAuthenticated, (req, res) => {
     const admin = req.user.type === 'admin';
+    const userId = req.user.id;
     const onlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'online'";
     const offlineUsersQuery = "SELECT COUNT(DISTINCT userid) as count FROM attendance WHERE status = 'offline'";
     const totalFenceQuery = "SELECT COUNT(DISTINCT geoid) as count FROM geofence"
@@ -175,7 +176,7 @@ app.get('/home', isAuthenticated, (req, res) => {
 
 console.log(totalFence)
 
-                res.render('home', { admin, offlineUsers, onlineUsers, totalFence });
+                res.render('home', { admin, userId, offlineUsers, onlineUsers, totalFence });
             });
 
             });
@@ -327,33 +328,46 @@ db.query("select * from request",(err,rows)=>{
 });
 
 const port = 3000;
-io.use((socket, next) => {
-    const session = socket.request.session;
-    if (session && session.passport && session.passport.user) {
-        next();
-    } else {
-        next(new Error("Not authenticated"));
-    }
-});
+// io.use((socket, next) => {
+//     const session = socket.request.session;
+//     if (session && session.passport && session.passport.user) {
+//         next();
+//     } else {
+//         next(new Error("Not authenticated"));
+//     }
+// });
 
 const customIdSocketMap = new Map();
 
 io.on("connection", (socket) => {
-    const customId = socket.request.session.passport.user.id;
+    console.log(`Socket connected with ID: ${socket.id}`);
 
-    customIdSocketMap.set(customId, socket);
-
-    socket.emit("custom-id", { customId });
-
-    console.log(`User with custom ID ${customId} connected with socket ID: ${socket.id}`);
+    // Event to receive custom ID from client and map it
+    socket.on("set-custom-id", (data) => {
+        const customId = data.customId;
+        if (customId) {
+            customIdSocketMap.set(customId, socket);
+            console.log(`Custom ID ${customId} mapped to socket ID: ${socket.id}`);
+            socket.emit("custom-id-set", { success: true, customId });
+        } else {
+            console.error("Custom ID not provided");
+            socket.emit("custom-id-set", { success: false, error: "Custom ID not provided" });
+        }
+    });
 
     socket.on("disconnect", () => {
-        customIdSocketMap.delete(customId);
-        console.log(`User with custom ID ${customId} disconnected`);
+        // Find and remove the custom ID associated with this socket
+        for (const [customId, socketInMap] of customIdSocketMap.entries()) {
+            if (socketInMap.id === socket.id) {
+                customIdSocketMap.delete(customId);
+                console.log(`User with custom ID ${customId} disconnected`);
+                break;
+            }
+        }
     });
 
     socket.on("send-admin", (data) => {
-        const targetCustomId = 1;
+        const targetCustomId = 1; // Replace with the desired admin ID
         const targetSocket = customIdSocketMap.get(targetCustomId);
 
         if (targetSocket) {
@@ -364,7 +378,6 @@ io.on("connection", (socket) => {
         }
     });
 });
-
 server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

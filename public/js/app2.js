@@ -9,8 +9,7 @@ const geofenceRadius = 500;
 document.addEventListener('DOMContentLoaded', () => {
   const para = document.querySelector("p");
   const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
-    const myId =  document.querySelector('#choco').innerHTML;
-    console.log(myId)
+
   // Initialize the map
   var map = L.map('map').setView([51.505, -0.09], 15);
 
@@ -48,14 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`Disconnected: ${reason}`);
   });
 
-  socket.emit("set-custom-id", { customId: myId });
-  socket.on("custom-id-set", (response) => {
-    if (response.success) {
-      console.log(`Custom ID ${response.customId} successfully set`);
-    } else {
-      console.error("Error setting custom ID:", response.error);
-    }
-  });
+  socket.emit("set-custom-id", { customId: 1 });
+
+        socket.on("custom-id-set", (response) => {
+          if (response.success) {
+            console.log(`Custom ID ${response.customId} successfully set`);
+          } else {
+            console.error("Error setting custom ID:", response.error);
+          }
+        });
+
   const checkGeofenceStatus = (userLocation) => {
     const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
     return distance <= geofenceRadius;
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
           userMarker = L.marker([latitude, longitude]).addTo(map);
       }
 
-      socket.emit("send-admin", { latitude, longitude, id:myId });
+      socket.emit("send-admin", { latitude, longitude, id });
 
       axios.post('/geo/data', { latitude, longitude })
           .then(response => {
