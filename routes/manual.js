@@ -197,4 +197,21 @@ Router.get("/temp-geos",(req,res)=>{
         res.send(rows).status(200)
     })
 })
+Router.post("/history",(req,res)=>{
+    const {id}=req.user.id;
+    db.query("select * from attendance where userid=?",[id],(err,rows)=>{
+        if(err){
+            res.send("error while fetching history ples try later").status(404)
+        }
+        else{
+        if(rows.length===0){
+            res.send("error while fetching history ples try later").status(404)
+        }
+        else{
+            console.log(rows);
+            res.send(rows).status(200)
+
+        }}
+    })
+})
 module.exports = Router;
