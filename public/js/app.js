@@ -68,31 +68,42 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error("Error fetching geofences:", error);
+     
     }
+   
   }
   showAllFences();
-  async function showAllTFences() {
+  async function showAllnili() {
     try {
-      const response = await axios.get('http://localhost:3000/user/temp-geos');
-      const geofences = response.data;
-      if(geofences!=null){
-      for (const fen of geofences) {
-        console.log(fen);
-          let circle = L.circle([fen.latitude, fen.longitude], {
-              color: '#FFA071',
-              fillColor: '#87CEEB',
-              fillOpacity: 0.5,
-              radius: fen.radius,
-          }).bindPopup(`Office ${fen.name}`)
-          .openPopup().addTo(map);
+        console.log("helo bhai");
+        const response = await axios.get('http://localhost:3000/user/temp-geos');
+        console.log(response);
+        const geofences = response.data;
+        console.log(geofences);
 
-          map.fitBounds(circle.getBounds());
-      }}
+        if (geofences && geofences.length > 0) {
+            console.log('Temporary geofences:', geofences);
+
+            geofences.forEach(fen => {
+                let daba = L.circle([fen.latitude, fen.longitude], {
+                    color: '#000000',
+                    fillColor: '#DAF7A6',
+                    fillOpacity: 0.5,
+                    radius: fen.radius,
+                }).bindPopup(`Office ${fen.name}`)
+                  .openPopup()
+                  .addTo(map);
+
+                map.fitBounds(daba.getBounds());
+            });
+        } else {
+            console.log('No temporary geofences found.');
+        }
     } catch (error) {
-      console.error("Error fetching geofences:", error);
+        console.error("Error fetching geofences:", error);
     }
-  }
-  showAllTFences();
+}
+showAllnili()
 
   
   let locationInterval = null;

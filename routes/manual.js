@@ -194,6 +194,7 @@ Router.get("/temp-geos",(req,res)=>{
     const query="select * from temgeo where date=?"
     db.query(query,[ourdate],(err,rows)=>{
         console.log(rows);
+        res.send(rows).status(200)
     })
 })
 module.exports = Router;
