@@ -198,9 +198,9 @@ Router.get("/temp-geos",(req,res)=>{
     })
 })
 Router.post("/history",(req,res)=>{
-    const {id}=req.user.id;
+    const id=req.user.id;
     db.query("select * from attendance where userid=?",[id],(err,rows)=>{
-        if(err){
+        if(err){console.log(err);
             res.send("error while fetching history ples try later").status(404)
         }
         else{
@@ -215,9 +215,10 @@ Router.post("/history",(req,res)=>{
     })
 })
 Router.post("/history/req",(req,res)=>{
-    const {id}=req.user.id;
+    const id=req.user.id;
     db.query("select * from request where userid=?",[id],(err,rows)=>{
         if(err){
+            console.log(err);
             res.send("error while fetching history ples try later").status(404)
         }
         else{
