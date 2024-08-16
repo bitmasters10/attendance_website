@@ -57,7 +57,9 @@ const ourdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().p
 
 Router.post("/new/temp-geo", async (req, res) => {
     const { longitude, latitude, description } = req.body;
+    console.log(req.body);
     const userid = req.user.id;
+    console.log(userid);
     try {
         let id = await idmake("request", "reqid");
         const query = `SELECT * FROM request WHERE latitude = ? AND longitude = ? AND date = ?`;
@@ -65,13 +67,16 @@ Router.post("/new/temp-geo", async (req, res) => {
             if (err) {
                 console.log('Error:', err);
                 res.sendStatus(500);
-            } else {
-                const insertQuery = `INSERT INTO request (reqid, userid, latitude, longitude, date, description) VALUES (?, ?, ?, ?, ?, ?)`;
-                db.query(insertQuery, [id, userid, latitude, longitude, ourdate, description], (err) => {
+            } else if(rows.length===0) {
+                const insertQuery = `INSERT INTO request (reqid, userid, latitude, longitude, date, description,status) VALUES (?, ?, ?, ?, ?, ?,?)`;
+                db.query(insertQuery, [id, userid, latitude, longitude, ourdate, description,"pen"], (err) => {
                     if (err) {
                         console.log('Error:', err);
                         res.sendStatus(500);
                     } else {
+                        db.query("select * from request ",(err,rows)=>{
+console.log(rows);
+                        })
                         res.send("Request created successfully");
                     }
                 });
@@ -88,11 +93,12 @@ Router.get("/new/temp", (req, res) => {
 });
 
 Router.post("/show/temp", (req, res) => {
-    db.query("SELECT r.*, u.username FROM users u JOIN request r ON u.id = r.userid WHERE r.date = ?", [ourdate], (err, rows) => {
+    db.query("SELECT r.*, u.username FROM users u JOIN request r ON u.id = r.userid WHERE r.date = ? and r.status =?", [ourdate,"pen"], (err, rows) => {
         if (err) {
             console.log("Error:", err);
             res.sendStatus(500);
         } else {
+            
             res.status(200).json(rows);
         }
     });
@@ -101,6 +107,7 @@ Router.post("/show/temp", (req, res) => {
 Router.get("/show/temp-geo", async (req, res) => {
     try {
         const { data: requests } = await axios.post("http://localhost:3000/user/show/temp");
+        console.log(requests);
         res.render("show-temp", { requests });
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -118,18 +125,58 @@ Router.post("/find/:id",async(req,res)=>{
 })
 Router.post("/admin/requests/:id/accept", async (req, res) => {
     const { id } = req.params;
-    let r= await axios.post(`http://localhost:3000/user/find/${id}`)
-    let temp=r.data
-    db.query("UPDATE request SET status = 'accepted' WHERE reqid = ?", [id], (err) => {
-        if (err) {
-            console.log("Error updating request status:", err);
-            res.sendStatus(500);
-        } else {
-           const query="select *"
-            res.redirect("/admin/requests");
-        }
-    });
+    
+    try {
+        let response = await axios.post(`http://localhost:3000/user/find/${id}`);
+        let temp = response.data[0]; // Assuming 'data' is an array with a single object
+
+        // Generate a unique ID for temgeo
+        let ide = await idmake("temgeo", "tempid");
+
+        // Update the status of the request to 'accepted'
+        db.query("UPDATE request SET status = ? WHERE reqid = ?", ["accept", id], (err) => {
+            if (err) {
+                console.log("Error updating request status:", err);
+                res.sendStatus(500);
+                return;
+            }
+            
+            // Check if a similar entry exists in temgeo
+            const query = "SELECT * FROM temgeo WHERE latitude = ? AND longitude = ? AND date = ?";
+            db.query(query, [temp.latitude, temp.longitude, temp.date], (err, rows) => {
+                if (err) {
+                    console.log("Error occurred:", err);
+                    res.sendStatus(500);
+                    return;
+                }
+                
+                // If no similar entry exists, insert the new data
+                if (rows.length === 0) {
+                    let insertQuery = `
+                        INSERT INTO temgeo (tempid, latitude, longitude, radius, name, date) VALUES (?, ?, ?, ?, ?, ?)
+                    `;
+                    db.query(insertQuery, [ide, temp.latitude, temp.longitude,100, ide, temp.date], (err, rows) => {
+                        if (err) {
+                            console.log("Error while inserting into temgeo:", err);
+                            res.sendStatus(500);
+                            return;
+                        }
+                        
+                        console.log("Inserted into temgeo:", rows);
+                        res.redirect("/user/show/temp-geo");
+                    });
+                } else {
+                    console.log("Entry already exists in temgeo");
+                    res.redirect("/user/show/temp-geo");
+                }
+            });
+        });
+    } catch (error) {
+        console.error("Error processing request:", error);
+        res.sendStatus(500);
+    }
 });
+
 
 Router.post("/admin/requests/:id/reject", async (req, res) => {
     const { id } = req.params;
