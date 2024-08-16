@@ -188,6 +188,12 @@ Router.post("/admin/requests/:id/reject", async (req, res) => {
             res.redirect("/admin/requests");
         }
     });
-});
 
+});
+Router.get("/temp-geos",(req,res)=>{
+    const query="select * from temgeo where date=?"
+    db.query(query,[ourdate],(err,rows)=>{
+        console.log(rows);
+    })
+})
 module.exports = Router;

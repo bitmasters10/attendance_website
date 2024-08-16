@@ -18,19 +18,25 @@ const db = mysql.createConnection({
 
 router.post('/data', async (req, res) => {
     try {
-       console.log(req.body)
         const userLocation = req.body;
         const userId = req.user.id;
-        
-        // Fetch geofences
-        const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
-        const geofences = response.data;
+
+        // Fetch permanent geofences
+        const permanentResponse = await axios.get('http://localhost:3000/admin-o/curr-geos');
+        const permanentGeofences = permanentResponse.data;
+
+        // Fetch temporary geofences
+        const temporaryResponse = await axios.get('http://localhost:3000/user/temp-geos');
+        const temporaryGeofences = temporaryResponse.data;
+
+        // Combine all geofences
+        const allGeofences = [...permanentGeofences, ...temporaryGeofences];
 
         // Find the closest geofence
         let closestGeofence = null;
         let minDistance = Infinity;
 
-        geofences.forEach(geofence => {
+        allGeofences.forEach(geofence => {
             const distance = geolib.getDistance(
                 { latitude: userLocation.latitude, longitude: userLocation.longitude },
                 { latitude: geofence.latitude, longitude: geofence.longitude }
@@ -47,10 +53,8 @@ router.post('/data', async (req, res) => {
         }
 
         const now = new Date();
-        const currentHour = now.getHours();
         const startHour = 9;
         const endHour = 17;
-
         const year = now.getFullYear();
         const month = now.getMonth() + 1;
         const day = now.getDate();
@@ -61,21 +65,7 @@ router.post('/data', async (req, res) => {
         const seconds = now.getSeconds().toString().padStart(2, '0');
         const currentTime = `${hours}:${minutes}:${seconds}`;
 
-        let d= new Date()
-        let a=d.getHours()
-       console.log(d);
-       console.log(a);
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       let acc = (a >= startHour && a < endHour) ? "present" : "absent";
-       console.log(acc);
+        let acc = (hours >= startHour && hours < endHour) ? "present" : "absent";
 
         if (minDistance <= closestGeofence.radius) {
             console.log('Inside closest geofence');
@@ -85,8 +75,8 @@ router.post('/data', async (req, res) => {
                     return res.status(500).json({ message: 'Server error' });
                 }
                 if (results.length === 0) {
-                    db.query('INSERT INTO attendance (userid, status, date, signin_time, accounted_for,curr_loc) VALUES (?, ?, ?, ?, ?,?)', 
-                    [userId, 'online', ourdate, currentTime, acc,closestGeofence.name], (err, results) => {
+                    db.query('INSERT INTO attendance (userid, status, date, signin_time, accounted_for, curr_loc) VALUES (?, ?, ?, ?, ?, ?)', 
+                    [userId, 'online', ourdate, currentTime, acc, closestGeofence.name], (err, results) => {
                         if (err) {
                             console.error('Error executing query:', err);
                             return res.status(500).json({ message: 'Server error' });
@@ -94,7 +84,7 @@ router.post('/data', async (req, res) => {
                         res.json({ message: 'Inside closest geofence, attendance recorded' });
                     });
                 } else {
-                    db.query('UPDATE attendance SET status = ?, signout_time = NULL   WHERE userid = ? AND date = ?', 
+                    db.query('UPDATE attendance SET status = ?, signout_time = NULL WHERE userid = ? AND date = ?', 
                     ['online', userId, ourdate], (err, results) => {
                         if (err) {
                             console.error('Error executing query:', err);
