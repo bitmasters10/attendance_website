@@ -4,7 +4,6 @@ const geolib = require('geolib');
 const mysql = require('mysql2');
 const axios = require('axios');
 
-
 // Set up MySQL connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -14,7 +13,15 @@ const db = mysql.createConnection({
     port: process.env.DB_PORT 
 });
 
-
+async function callagra() {
+    try {
+        const temporaryResponse = await axios.get('http://localhost:3000/user/temp-geos');
+        return temporaryResponse.data;
+    } catch (error) {
+        console.error('Error fetching temporary geofences:', error);
+        return []; // Return an empty array if there's an error fetching temporary geofences
+    }
+}
 
 router.post('/data', async (req, res) => {
     try {
@@ -22,21 +29,20 @@ router.post('/data', async (req, res) => {
         const userId = req.user.id;
 
         // Fetch permanent geofences
-        const permanentResponse = await axios.get('http://localhost:3000/admin-o/curr-geos');
-        const permanentGeofences = permanentResponse.data;
-
-        // Fetch temporary geofences
-        const temporaryResponse = await axios.get('http://localhost:3000/user/temp-geos');
-        const temporaryGeofences = temporaryResponse.data;
-
-        // Combine all geofences
-        const allGeofences = [...permanentGeofences, ...temporaryGeofences];
-
-        // Find the closest geofence
+        let permanentGeofences = [];
         let closestGeofence = null;
         let minDistance = Infinity;
 
-        allGeofences.forEach(geofence => {
+        try {
+            const permanentResponse = await axios.post('http://localhost:3000/admin-o/curr-geos');
+            permanentGeofences = permanentResponse.data;
+        } catch (error) {
+            console.error('Error fetching permanent geofences:', error);
+            return res.status(500).json({ message: 'Failed to fetch permanent geofences' });
+        }
+
+        // Find the closest geofence in the permanent geofences
+        permanentGeofences.forEach(geofence => {
             const distance = geolib.getDistance(
                 { latitude: userLocation.latitude, longitude: userLocation.longitude },
                 { latitude: geofence.latitude, longitude: geofence.longitude }
@@ -47,6 +53,24 @@ router.post('/data', async (req, res) => {
                 closestGeofence = geofence;
             }
         });
+
+        // If no geofence found in permanent geofences, fetch temporary geofences
+        if (!closestGeofence || minDistance > closestGeofence.radius) {
+            const temporaryGeofences = await callagra();
+
+            // Find the closest geofence in the temporary geofences
+            temporaryGeofences.forEach(geofence => {
+                const distance = geolib.getDistance(
+                    { latitude: userLocation.latitude, longitude: userLocation.longitude },
+                    { latitude: geofence.latitude, longitude: geofence.longitude }
+                );
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestGeofence = geofence;
+                }
+            });
+        }
 
         if (!closestGeofence) {
             return res.status(404).json({ message: 'No geofence found' });

@@ -7,7 +7,7 @@ const geofenceLng = 72.8812857;
 const geofenceRadius = 500;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const para = document.querySelector("p");
+  const para = document.querySelector("#para");
   const showGeofenceBtn = document.querySelector('#showGeofenceBtn');
     const myId =  document.querySelector('#choco').innerHTML;
     console.log(myId)
@@ -19,16 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }).addTo(map);
 
 
-  const userIcon = L.Icon.extend({
-    options: {
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // URL to the Leaflet default icon or your custom icon
-        iconSize: [25, 41], // size of the icon
-        iconAnchor: [12, 41], // point of the icon which will correspond to marker's location
-        popupAnchor: [1, -34], // point from which the popup should open relative to the iconAnchor
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png', // optional shadow
-        shadowSize: [41, 41] // size of the shadow
-    }
-});
+  
   // Initialize Socket.IO
   const socket = io();
 
@@ -56,39 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Error setting custom ID:", response.error);
     }
   });
-  const checkGeofenceStatus = (userLocation) => {
-    const distance = getDistanceFromLatLonInKm(userLocation[0], userLocation[1], geofenceLat, geofenceLng);
-    return distance <= geofenceRadius;
-};
+
   // Define updateUserMarkers before its usage
-  const updateUserMarkers = (data) => {
-      const { id, latitude, longitude } = data;
-      const userLocation = [latitude, longitude];
-      console.log(id);
-
-      if (!userMarkers[id]) {
-          // Create a new marker if it doesn't exist
-          userMarkers[id] = L.marker(userLocation, { icon: new userIcon() }).addTo(map)
-              .bindPopup(`User ${id} is here.`)
-              .openPopup();
-      } else {
-          // Update the marker's position if it already exists
-          userMarkers[id].setLatLng(userLocation);
-      }
-
-      const isInsideGeofence = checkGeofenceStatus(userLocation);
-
-      if (isInsideGeofence) {
-          console.log(`User ${id} entered the geofence at: ${new Date().toLocaleString()}`);
-      } else {
-          console.log(`User ${id} left the geofence at: ${new Date().toLocaleString()}`);
-      }
-  };
-
-  socket.on("receive-message", (data) => {
-    console.log(data);
-    updateUserMarkers(data);
-  });
+  
 
   async function showAllFences() {
     try {
@@ -110,8 +71,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   showAllFences();
+  async function showAllTFences() {
+    try {
+      const response = await axios.get('http://localhost:3000/user/temp-geos');
+      const geofences = response.data;
+      if(geofences!=null){
+      for (const fen of geofences) {
+        console.log(fen);
+          let circle = L.circle([fen.latitude, fen.longitude], {
+              color: '#FFA071',
+              fillColor: '#87CEEB',
+              fillOpacity: 0.5,
+              radius: fen.radius,
+          }).bindPopup(`Office ${fen.name}`)
+          .openPopup().addTo(map);
 
-  // User permission
+          map.fitBounds(circle.getBounds());
+      }}
+    } catch (error) {
+      console.error("Error fetching geofences:", error);
+    }
+  }
+  showAllTFences();
+
+  
   let locationInterval = null;
   document.getElementById('btnn').addEventListener('click', () => {
       if (navigator.geolocation) {
@@ -144,18 +127,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       axios.post('/geo/data', { latitude, longitude })
           .then(response => {
+            console.log(response);
               para.innerHTML = `<p>${response.data.message}</p>`;
               console.log(response.data);
           })
           .catch(error => console.error("Error posting geolocation data:", error));
   }
 
-  if (showGeofenceBtn) {
-      showGeofenceBtn.addEventListener('click', () => {
-          alert('Geofence button clicked');
-      });
-  }
-
+  
 
   function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
       const R = 6371;
