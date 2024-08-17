@@ -227,6 +227,7 @@ Router.post("/history/req",(req,res)=>{
         }
         else{
             console.log(rows);
+            console.log("helo");
             res.send(rows).status(200)
 
         }}
