@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function showAllFences() {
     try {
-      const response = await axios.post('http://localhost:3000/admin-o/curr-geos');
+      const response = await axios.post('/admin-o/curr-geos');
       const geofences = response.data;
       for (const fen of geofences) {
           let circle = L.circle([fen.latitude, fen.longitude], {
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function showAllnili() {
     try {
         console.log("helo bhai");
-        const response = await axios.get('http://localhost:3000/user/temp-geos');
+        const response = await axios.get('/user/temp-geos');
         console.log(response);
         const geofences = response.data;
         console.log(geofences);

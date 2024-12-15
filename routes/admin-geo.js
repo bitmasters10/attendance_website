@@ -10,14 +10,15 @@ const axios =require("axios")
 // Middleware setup
 Router.use(methodOverride('_method'));
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT 
-});
-
+    waitForConnections: true,
+    connectionLimit: 10, // Adjust as needed
+    queueLimit: 0,
+  });
 const sessionStore = new MySQLStore({}, db.promise());
 
 // Middleware to check if user is admin

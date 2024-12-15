@@ -15,14 +15,24 @@ const { Server } = require("socket.io");
 const { createServer } = require("http");
 
 const app = express();
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT 
-});
-
+    waitForConnections: true,
+    connectionLimit: 10, // Adjust as needed
+    queueLimit: 0,
+  });
+  
+  db.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error connecting to the database:', err);
+    } else {
+      console.log('Connected to the database!');
+      connection.release(); // Release connection back to the pool
+    }
+  });
 const adminEmail = process.env.ADMIN_EMAIL;
 const adminPassword = process.env.ADMIN_PASS;
 const server = createServer(app);
@@ -56,13 +66,7 @@ app.use('/geo', require('./routes/geo'));
 
 app.use(express.static('public'));
 
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
-    }
-    console.log('Connected to the MySQL database');
-});
+
 
 passport.use('user-local', new LocalStrategy(
     {

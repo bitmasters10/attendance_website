@@ -151,7 +151,7 @@
                             <td>
                                 <div class="action-buttons">
                                     <a href="/admin-o/edit/geo/<%= f.geoid %>" class="btn btn-primary"><i class="fa fa-edit"></i></a>
-                                    <form action="http://localhost:3000/admin-o/delete-geofence/<%= f.geoid %>?_method=DELETE" method="post">
+                                    <form action="/admin-o/delete-geofence/<%= f.geoid %>?_method=DELETE" method="post">
                                         <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
                                     </form>
                                 </div>

@@ -15,7 +15,7 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h1 class="text-2xl font-bold mb-6 text-center">Update</h1>
-        <form action="http://localhost:3000/admin/users/<%= users.id %>?_method=PATCH" method="post">
+        <form action="/admin/users/<%= users.id %>?_method=PATCH" method="post">
 
             <div class="mb-4">
                 <label for="username" class="block text-gray-700 font-medium mb-2">Enter the Username:</label>
